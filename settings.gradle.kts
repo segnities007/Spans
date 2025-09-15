@@ -21,3 +21,14 @@ dependencyResolutionManagement {
 
 rootProject.name = "Spans"
 include(":app")
+include(":domain:model")
+include(":domain:usecase")
+include(":domain:repository")
+include(":data:local")
+include(":data:remote")
+include(":data:repository")
+include(":presentation:auth")
+include(":core:ui")
+include(":presentation:plaza")
+include(":presentation:setting")
+include(":presentation:timeline")
