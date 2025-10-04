@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.segnities007.remote"
+    namespace = "com.segnities007.profile"
     compileSdk = 36
 
     defaultConfig {
