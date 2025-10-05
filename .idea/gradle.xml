@@ -11,23 +11,29 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/core" />
-            <option value="$PROJECT_DIR$/core/mvi" />
-            <option value="$PROJECT_DIR$/core/navigation" />
-            <option value="$PROJECT_DIR$/core/ui" />
             <option value="$PROJECT_DIR$/data" />
             <option value="$PROJECT_DIR$/data/local" />
+            <option value="$PROJECT_DIR$/data/local/db" />
             <option value="$PROJECT_DIR$/data/remote" />
             <option value="$PROJECT_DIR$/data/repository" />
+            <option value="$PROJECT_DIR$/di" />
             <option value="$PROJECT_DIR$/domain" />
             <option value="$PROJECT_DIR$/domain/model" />
             <option value="$PROJECT_DIR$/domain/repository" />
             <option value="$PROJECT_DIR$/domain/usecase" />
             <option value="$PROJECT_DIR$/presentation" />
-            <option value="$PROJECT_DIR$/presentation/auth" />
-            <option value="$PROJECT_DIR$/presentation/plaza" />
-            <option value="$PROJECT_DIR$/presentation/setting" />
-            <option value="$PROJECT_DIR$/presentation/timeline" />
+            <option value="$PROJECT_DIR$/presentation/mvi" />
+            <option value="$PROJECT_DIR$/presentation/navigation" />
+            <option value="$PROJECT_DIR$/presentation/ui" />
+            <option value="$PROJECT_DIR$/presentation/ui/auth" />
+            <option value="$PROJECT_DIR$/presentation/ui/component" />
+            <option value="$PROJECT_DIR$/presentation/ui/hub" />
+            <option value="$PROJECT_DIR$/presentation/ui/post" />
+            <option value="$PROJECT_DIR$/presentation/ui/profile" />
+            <option value="$PROJECT_DIR$/presentation/ui/search" />
+            <option value="$PROJECT_DIR$/presentation/ui/settings" />
+            <option value="$PROJECT_DIR$/presentation/ui/timeline" />
+            <option value="$PROJECT_DIR$/util" />
           </set>
         </option>
       </GradleProjectSettings>
