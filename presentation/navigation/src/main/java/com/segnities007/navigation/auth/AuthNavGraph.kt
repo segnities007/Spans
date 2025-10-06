@@ -1,5 +1,6 @@
 package com.segnities007.navigation.auth
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,7 +23,7 @@ fun AuthNavGraph(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = modifier
+            modifier = modifier.padding(innerPadding)
         ) {
             composable<AuthNavRoute.SignIn> {
                 // TODO: auth:ui:SignInScreenをここで呼び出す
