@@ -31,7 +31,10 @@
             <option value="$PROJECT_DIR$/presentation/ui/profile" />
             <option value="$PROJECT_DIR$/presentation/ui/search" />
             <option value="$PROJECT_DIR$/presentation/ui/settings" />
+            <option value="$PROJECT_DIR$/presentation/ui/signin" />
+            <option value="$PROJECT_DIR$/presentation/ui/signup" />
             <option value="$PROJECT_DIR$/presentation/ui/timeline" />
+            <option value="$PROJECT_DIR$/presentation/ui/tutorial" />
             <option value="$PROJECT_DIR$/util" />
           </set>
         </option>

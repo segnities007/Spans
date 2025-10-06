@@ -540,6 +540,8 @@ private fun TimelineContent(
 # Presentation Layer
 :presentation:ui:auth          # 認証関連画面モジュール
 :presentation:ui:hub           # メインハブモジュール
+:presentation:ui:signin        # サインイン画面モジュール
+:presentation:ui:signup        # サインアップ画面モジュール
 :presentation:ui:timeline      # タイムラインモジュール
 :presentation:ui:post          # 投稿作成・編集モジュール
 :presentation:ui:search        # 検索モジュール
@@ -576,6 +578,8 @@ project-root/
 ├── :presentation
 │   ├── :ui
 │   │   ├── :auth                          # 認証画面モジュール
+│   │   │── :signin                        # サインイン画面
+│   │   │── :signup                        # サインアップ画面
 │   │   ├── :hub                           # メインハブモジュール
 │   │   ├── :timeline                      # タイムラインモジュール
 │   │   ├── :post                          # 投稿作成・編集モジュール
@@ -584,7 +588,6 @@ project-root/
 │   │   ├── :settings                      # 設定モジュール
 │   │   └── :component                     # 共通UIコンポーネントモジュール
 │   │
-│   ├── :mvi                               # MVI基盤モジュール
 │   ├── :navigation                        # ナビゲーション定義モジュール
 │   └── :theme                             # テーマ・デザインシステムモジュール
 │
