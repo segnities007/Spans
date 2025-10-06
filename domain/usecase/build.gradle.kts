@@ -33,6 +33,12 @@ android {
 }
 
 dependencies {
+    // Domain dependencies
+    api(project(":domain:model"))
+    api(project(":domain:repository"))
+    
+    // Kotlin Coroutines
+    implementation(libs.kotlinx.coroutines.core)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
