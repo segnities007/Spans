@@ -18,18 +18,7 @@ fun AuthNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: AuthNavRoute = AuthNavRoute.SignIn,
 ) {
-    var topBar by remember { mutableStateOf<@Composable () -> Unit>({}) }
-    var bottomBar by remember { mutableStateOf<@Composable () -> Unit>({}) }
-    var floatingActionButton by remember { mutableStateOf<@Composable () -> Unit>({}) }
-    val updateTopBar: (@Composable () -> Unit) -> Unit = { topBar = it }
-    val updateBottomBar: (@Composable () -> Unit) -> Unit = { bottomBar = it }
-    val updateFloatingActionButton: (@Composable () -> Unit) -> Unit = { floatingActionButton = it }
-
-    Scaffold(
-        topBar = topBar,
-        bottomBar = bottomBar,
-        floatingActionButton = floatingActionButton,
-    ){ innerPadding ->
+    Scaffold{ innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
