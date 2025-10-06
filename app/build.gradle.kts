@@ -59,4 +59,5 @@ dependencies {
 
     //navigation
     implementation(libs.androidx.navigation.compose)
+    implementation(project(":presentation:navigation"))
 }

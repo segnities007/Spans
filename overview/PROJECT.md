@@ -161,11 +161,13 @@ ViewModel (Intent処理)
     ↓
 UseCase実行
     ↓
-Model更新
+Reducer (State更新)
     ↓
 State変更
     ↓
 View (State監視・再描画)
+    ↓
+Effect (一度きりのイベント)
 ```
 
 **MVI vs MVVM**:
@@ -180,7 +182,8 @@ View (State監視・再描画)
 │  ┌──────────────────────────────────┐   │
 │  │  Compose UI (View)               │   │
 │  │  ViewModel (Intent → State)      │   │
-│  │  UiState / UiIntent              │   │
+│  │  UiState / UiIntent / UiEffect   │   │
+│  │  Reducer                         │   │
 │  └────────────────┬─────────────────┘   │
 └───────────────────┼─────────────────────┘
                     │
@@ -234,7 +237,94 @@ sealed interface TimelineIntent {
 }
 ```
 
-#### ViewModel設計
+#### UiEffect定義
+
+```kotlin
+// 一度きりのイベントを表現（ナビゲーション、Snackbar表示など）
+sealed interface TimelineEffect {
+    data class NavigateToPostDetail(val postId: String) : TimelineEffect
+    data class ShowSnackbar(val message: String) : TimelineEffect
+    object ShowLikeAnimation : TimelineEffect
+}
+```
+
+#### Reducer定義
+
+```kotlin
+// State変更ロジックを集約
+object TimelineReducer {
+    
+    fun reduce(
+        currentState: TimelineUiState,
+        result: TimelineResult
+    ): TimelineUiState {
+        return when (result) {
+            is TimelineResult.Loading -> TimelineUiState.Loading
+            
+            is TimelineResult.PostsLoaded -> {
+                if (currentState !is TimelineUiState.Success) {
+                    return TimelineUiState.Success(
+                        posts = result.posts,
+                        hasMore = result.hasMore
+                    )
+                }
+                currentState.copy(
+                    posts = result.posts,
+                    isRefreshing = false,
+                    hasMore = result.hasMore
+                )
+            }
+            
+            is TimelineResult.PostsAppended -> {
+                if (currentState !is TimelineUiState.Success) return currentState
+                currentState.copy(
+                    posts = currentState.posts + result.posts,
+                    hasMore = result.hasMore
+                )
+            }
+            
+            is TimelineResult.PostLikeUpdated -> {
+                if (currentState !is TimelineUiState.Success) return currentState
+                currentState.copy(
+                    posts = currentState.posts.map { post ->
+                        if (post.id == result.postId) {
+                            post.copy(
+                                isLikedByMe = result.isLiked,
+                                likeCount = if (result.isLiked) {
+                                    post.likeCount + 1
+                                } else {
+                                    post.likeCount - 1
+                                }
+                            )
+                        } else {
+                            post
+                        }
+                    }
+                )
+            }
+            
+            is TimelineResult.Error -> TimelineUiState.Error(result.message)
+            
+            is TimelineResult.RefreshStarted -> {
+                if (currentState !is TimelineUiState.Success) return currentState
+                currentState.copy(isRefreshing = true)
+            }
+        }
+    }
+}
+
+// Reducerに渡す中間結果
+sealed interface TimelineResult {
+    object Loading : TimelineResult
+    data class PostsLoaded(val posts: List<Post>, val hasMore: Boolean) : TimelineResult
+    data class PostsAppended(val posts: List<Post>, val hasMore: Boolean) : TimelineResult
+    data class PostLikeUpdated(val postId: String, val isLiked: Boolean) : TimelineResult
+    data class Error(val message: String) : TimelineResult
+    object RefreshStarted : TimelineResult
+}
+```
+
+#### ViewModel設計（早期リターンパターン）
 
 ```kotlin
 class TimelineViewModel(
@@ -245,6 +335,10 @@ class TimelineViewModel(
     // State保持
     private val _uiState = MutableStateFlow<TimelineUiState>(TimelineUiState.Loading)
     val uiState: StateFlow<TimelineUiState> = _uiState.asStateFlow()
+    
+    // Effect送信用
+    private val _effect = Channel<TimelineEffect>(Channel.BUFFERED)
+    val effect: Flow<TimelineEffect> = _effect.receiveAsFlow()
     
     // Intent処理
     fun onIntent(intent: TimelineIntent) {
@@ -259,15 +353,116 @@ class TimelineViewModel(
     
     private fun loadTimeline() {
         viewModelScope.launch {
-            _uiState.value = TimelineUiState.Loading
-            getTimelineUseCase()
-                .onSuccess { posts ->
-                    _uiState.value = TimelineUiState.Success(posts)
-                }
-                .onFailure { error ->
-                    _uiState.value = TimelineUiState.Error(error.message ?: "Unknown error")
-                }
+            // 早期リターン: 既にローディング中の場合
+            if (_uiState.value is TimelineUiState.Loading) return@launch
+            
+            reduceState(TimelineResult.Loading)
+            
+            val result = getTimelineUseCase()
+            
+            // 早期リターン: 失敗時
+            if (result.isFailure) {
+                val error = result.exceptionOrNull()
+                reduceState(TimelineResult.Error(error?.message ?: "Unknown error"))
+                return@launch
+            }
+            
+            // 早期リターン: データがnullの場合
+            val posts = result.getOrNull() ?: return@launch
+            
+            reduceState(TimelineResult.PostsLoaded(posts, hasMore = posts.size >= 20))
         }
+    }
+    
+    private fun refreshTimeline() {
+        viewModelScope.launch {
+            // 早期リターン: Successでない場合はリフレッシュ不可
+            if (_uiState.value !is TimelineUiState.Success) return@launch
+            
+            reduceState(TimelineResult.RefreshStarted)
+            
+            val result = getTimelineUseCase()
+            
+            // 早期リターン: 失敗時
+            if (result.isFailure) {
+                sendEffect(TimelineEffect.ShowSnackbar("更新に失敗しました"))
+                return@launch
+            }
+            
+            val posts = result.getOrNull() ?: return@launch
+            reduceState(TimelineResult.PostsLoaded(posts, hasMore = posts.size >= 20))
+        }
+    }
+    
+    private fun loadMore() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            
+            // 早期リターン: Successでない、または追加データがない場合
+            if (currentState !is TimelineUiState.Success) return@launch
+            if (!currentState.hasMore) return@launch
+            
+            val offset = currentState.posts.size
+            val result = getTimelineUseCase(offset = offset)
+            
+            // 早期リターン: 失敗時
+            if (result.isFailure) {
+                sendEffect(TimelineEffect.ShowSnackbar("読み込みに失敗しました"))
+                return@launch
+            }
+            
+            val posts = result.getOrNull() ?: return@launch
+            reduceState(TimelineResult.PostsAppended(posts, hasMore = posts.size >= 20))
+        }
+    }
+    
+    private fun likePost(postId: String) {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            
+            // 早期リターン: Successでない場合
+            if (currentState !is TimelineUiState.Success) return@launch
+            
+            val post = currentState.posts.find { it.id == postId }
+            
+            // 早期リターン: 投稿が見つからない場合
+            if (post == null) return@launch
+            
+            val newLikedState = !post.isLikedByMe
+            
+            // 楽観的UI更新
+            reduceState(TimelineResult.PostLikeUpdated(postId, newLikedState))
+            sendEffect(TimelineEffect.ShowLikeAnimation)
+            
+            val result = if (newLikedState) {
+                likePostUseCase(postId)
+            } else {
+                likePostUseCase.unlike(postId)
+            }
+            
+            // 早期リターン: 成功した場合は何もしない
+            if (result.isSuccess) return@launch
+            
+            // 失敗時はロールバック
+            reduceState(TimelineResult.PostLikeUpdated(postId, !newLikedState))
+            sendEffect(TimelineEffect.ShowSnackbar("いいねに失敗しました"))
+        }
+    }
+    
+    private fun navigateToPost(postId: String) {
+        viewModelScope.launch {
+            sendEffect(TimelineEffect.NavigateToPostDetail(postId))
+        }
+    }
+    
+    // Reducerを使用してState更新
+    private fun reduceState(result: TimelineResult) {
+        _uiState.value = TimelineReducer.reduce(_uiState.value, result)
+    }
+    
+    // Effect送信
+    private suspend fun sendEffect(effect: TimelineEffect) {
+        _effect.send(effect)
     }
 }
 ```
@@ -277,26 +472,51 @@ class TimelineViewModel(
 ```kotlin
 @Composable
 fun TimelineScreen(
-    viewModel: TimelineViewModel = koinViewModel()
+    viewModel: TimelineViewModel = koinViewModel(),
+    navController: NavHostController
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     
-    when (val state = uiState) {
-        is TimelineUiState.Loading -> LoadingView()
-        is TimelineUiState.Success -> TimelineContent(
-            posts = state.posts,
-            onIntent = viewModel::onIntent
-        )
-        is TimelineUiState.Error -> ErrorView(state.message)
+    // Effect処理
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is TimelineEffect.NavigateToPostDetail -> {
+                    navController.navigate(PostDetailRoute(effect.postId))
+                }
+                is TimelineEffect.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is TimelineEffect.ShowLikeAnimation -> {
+                    // アニメーション処理
+                }
+            }
+        }
+    }
+    
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        when (val state = uiState) {
+            is TimelineUiState.Loading -> LoadingView()
+            is TimelineUiState.Success -> TimelineContent(
+                posts = state.posts,
+                onIntent = viewModel::onIntent,
+                modifier = Modifier.padding(padding)
+            )
+            is TimelineUiState.Error -> ErrorView(state.message)
+        }
     }
 }
 
 @Composable
 private fun TimelineContent(
     posts: List<Post>,
-    onIntent: (TimelineIntent) -> Unit
+    onIntent: (TimelineIntent) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    LazyColumn {
+    LazyColumn(modifier = modifier) {
         items(posts) { post ->
             PostCard(
                 post = post,
@@ -310,46 +530,100 @@ private fun TimelineContent(
 
 ### 3.5 モジュール構成
 
+本プロジェクトは、Clean Architectureの各レイヤーおよび機能ごとに独立したGradleモジュールとして実装します。
+
+#### モジュール一覧
+
 ```
-app/
-├── presentation/
-│   ├── ui/
-│   │   ├── auth/          # 認証関連画面
-│   │   ├── hub/           # メインハブ
-│   │   ├── timeline/      # タイムライン
-│   │   ├── post/          # 投稿作成・編集
-│   │   ├── search/        # 検索
-│   │   ├── profile/       # プロフィール
-│   │   ├── settings/      # 設定
-│   │   └── component/     # 共通UI
-│   ├── mvi/               # MVIクラス群
-│   │   ├── intent/        # UiIntent定義
-│   │   ├── effect/        # UiEffect定義
-│   │   ├── reducer/       # UiReducer定義
-│   │   └── state/         # UiState定義
-│   ├── navigation/        # Navigation Compose
-│   └── theme/             # テーマ・スタイル
+:app                           # アプリケーションモジュール（起動・DI統合）
+
+# Presentation Layer
+:presentation:ui:auth          # 認証関連画面モジュール
+:presentation:ui:hub           # メインハブモジュール
+:presentation:ui:timeline      # タイムラインモジュール
+:presentation:ui:post          # 投稿作成・編集モジュール
+:presentation:ui:search        # 検索モジュール
+:presentation:ui:profile       # プロフィールモジュール
+:presentation:ui:settings      # 設定モジュール
+:presentation:ui:component     # 共通UIモジュール
+:presentation:mvi              # MVIクラス群モジュール
+:presentation:navigation       # Navigation Composeモジュール
+:presentation:theme            # テーマ・スタイルモジュール
+
+# Domain Layer
+:domain:model                  # ドメインモデルモジュール
+:domain:repository             # リポジトリInterfaceモジュール
+:domain:usecase                # ユースケースモジュール
+
+# Data Layer
+:data:repository               # Repository実装モジュール
+:data:remote                   # API通信モジュール（Supabase + Ktor）
+:data:local:db                 # ローカルDB（Room）モジュール
+:data:local:ble                # BLE実装モジュール
+:data:local:worker             # WorkManagerモジュール
+
+# DI & Utility
+:di                            # Koin DI設定モジュール
+:util                          # ユーティリティモジュール
+```
+
+#### モジュール構成図
+
+```
+project-root/
+├── :app                                    # アプリケーションエントリーポイント
 │
-├── domain/
-│   ├── model/             # ドメインモデル
-│   ├── repository/        # リポジトリInterface
-│   └── usecase/           # ユースケース
+├── :presentation
+│   ├── :ui
+│   │   ├── :auth                          # 認証画面モジュール
+│   │   ├── :hub                           # メインハブモジュール
+│   │   ├── :timeline                      # タイムラインモジュール
+│   │   ├── :post                          # 投稿作成・編集モジュール
+│   │   ├── :search                        # 検索モジュール
+│   │   ├── :profile                       # プロフィールモジュール
+│   │   ├── :settings                      # 設定モジュール
+│   │   └── :component                     # 共通UIコンポーネントモジュール
+│   │
+│   ├── :mvi                               # MVI基盤モジュール
+│   ├── :navigation                        # ナビゲーション定義モジュール
+│   └── :theme                             # テーマ・デザインシステムモジュール
 │
-├── data/
-│   ├── repository/        # Repository実装
-│   ├── remote/            # API通信（Supabase + Ktor）
-│   └── local/             # プラットフォーム固有
-│       ├── db/            # ローカルDB（Room）
-│       ├── ble/           # BLE実装
-│       └── worker/        # WorkManager
+├── :domain
+│   ├── :model                             # ドメインモデルモジュール
+│   ├── :repository                        # リポジトリインターフェースモジュール
+│   └── :usecase                           # ユースケースモジュール
 │
-├── di/                    # Koin DI設定
-│   ├── AppModule.kt
-│   ├── NetworkModule.kt
-│   ├── DatabaseModule.kt
-│   └── RepositoryModule.kt
+├── :data
+│   ├── :repository                        # リポジトリ実装モジュール
+│   ├── :remote                            # Supabase/Ktor通信モジュール
+│   └── :local
+│       ├── :db                            # Room Databaseモジュール
+│       ├── :ble                           # BLE検出機能モジュール
+│       └── :worker                        # WorkManagerモジュール
 │
-└── util/                  # ユーティリティ
+├── :di                                    # Koin DI設定モジュール
+└── :util                                  # 共通ユーティリティモジュール
+```
+
+**各ディレクトリは独立したGradleモジュールとして実装されます。**
+
+**依存性注入設定**:
+
+各モジュールはKoinモジュールを提供し、`:di`モジュールで統合、`:app`で初期化します。
+
+```kotlin
+val appModules = listOf(
+    // Presentation modules
+    authModule,
+    hubModule,
+    timelineModule,
+    // Domain modules
+    useCaseModule,
+    // Data modules
+    repositoryModule,
+    remoteModule,
+    localModule
+)
 ```
 
 ### 3.6 依存性注入設計（Koin）
@@ -425,7 +699,7 @@ fun AppNavHost(
 }
 ```
 
-### 3.8 エラーハンドリング
+### 3.8 エラーハンドリング（早期リターンパターン）
 
 #### Result型の採用
 
@@ -441,6 +715,102 @@ sealed class AppError {
     data class Ble(val message: String) : AppError()
     data class Validation(val field: String, val message: String) : AppError()
     data class Unknown(val throwable: Throwable) : AppError()
+}
+```
+
+#### UseCase実装例（早期リターン）
+
+```kotlin
+class GetTimelineUseCase(
+    private val timelineRepository: TimelineRepository,
+    private val encounterRepository: EncounterRepository
+) {
+    suspend operator fun invoke(offset: Int = 0): Result<List<Post>> {
+        // 早期リターン: すれ違い情報の取得失敗
+        val encountersResult = encounterRepository.getEncounters()
+        if (encountersResult.isFailure) {
+            return Result.failure(
+                encountersResult.exceptionOrNull() ?: Exception("Unknown error")
+            )
+        }
+        
+        val encounters = encountersResult.getOrNull()
+        
+        // 早期リターン: すれ違いがない場合
+        if (encounters.isNullOrEmpty()) {
+            return Result.success(emptyList())
+        }
+        
+        // 早期リターン: タイムライン取得失敗
+        val timelineResult = timelineRepository.getTimeline(
+            encounterUuids = encounters.map { it.uuid },
+            encounterTimestamps = encounters.associate { it.uuid to it.lastSeen },
+            offset = offset
+        )
+        
+        if (timelineResult.isFailure) {
+            return Result.failure(
+                timelineResult.exceptionOrNull() ?: Exception("Unknown error")
+            )
+        }
+        
+        return timelineResult
+    }
+}
+```
+
+#### Repository実装例（早期リターン）
+
+```kotlin
+class TimelineRepositoryImpl(
+    private val remoteDataSource: TimelineRemoteDataSource,
+    private val localDataSource: TimelineLocalDataSource
+) : TimelineRepository {
+    
+    override suspend fun getTimeline(
+        encounterUuids: List<String>,
+        encounterTimestamps: Map<String, Long>,
+        offset: Int
+    ): Result<List<Post>> {
+        // 早期リターン: パラメータ検証失敗
+        if (encounterUuids.isEmpty()) {
+            return Result.failure(
+                IllegalArgumentException("Encounter UUIDs cannot be empty")
+            )
+        }
+        
+        // ローカルキャッシュチェック
+        val cachedPosts = localDataSource.getCachedPosts(offset)
+        val cacheValid = localDataSource.isCacheValid()
+        
+        // 早期リターン: キャッシュが有効な場合
+        if (cacheValid && cachedPosts.isNotEmpty()) {
+            return Result.success(cachedPosts)
+        }
+        
+        // リモート取得
+        val remoteResult = remoteDataSource.fetchTimeline(
+            encounterUuids = encounterUuids,
+            encounterTimestamps = encounterTimestamps,
+            offset = offset
+        )
+        
+        // 早期リターン: リモート取得失敗
+        if (remoteResult.isFailure) {
+            // ネットワークエラー時は古いキャッシュを返す
+            if (cachedPosts.isNotEmpty()) {
+                return Result.success(cachedPosts)
+            }
+            return remoteResult
+        }
+        
+        val posts = remoteResult.getOrNull() ?: return Result.success(emptyList())
+        
+        // キャッシュ保存（失敗しても無視）
+        localDataSource.cachePosts(posts)
+        
+        return Result.success(posts)
+    }
 }
 ```
 
@@ -1439,8 +1809,11 @@ Production Release (段階的公開)
 | UUID | Universally Unique Identifier。ユーザー識別子 |
 | RSSI | Received Signal Strength Indicator。電波強度 |
 | MVI | Model-View-Intent。単方向データフローパターン |
+| Reducer | State変更ロジックを集約する純粋関数 |
+| Effect | 一度きりのイベント（ナビゲーション、Snackbar等） |
 | すれ違い | BLEで検出された他のユーザーとの物理的接近 |
 | 時刻フィルタリング | すれ違い時刻以前の投稿のみ表示する機能 |
+| 早期リターン | 条件を満たさない場合に即座に関数から抜けるパターン |
 
 ### B. 参考資料
 
@@ -1489,5 +1862,7 @@ Production Release (段階的公開)
 1. **現在はAndroid専用開発**: MVP完成に集中
 2. **Compose Multiplatform対応技術選定**: 将来のiOS展開を視野
 3. **Clean Architecture + MVI**: 明確な単方向データフロー
-4. **Navigation Compose使用**: 公式KMP対応ナビゲーション
-5. **ユーザープライバシー重視**: GPS不使用、BLEのみ
+4. **Reducer + Effect パターン**: 状態管理の明確化と副作用の分離
+5. **早期リターンパターン**: 可読性が高く保守しやすいエラーハンドリング
+6. **Navigation Compose使用**: 公式KMP対応ナビゲーション
+7. **ユーザープライバシー重視**: GPS不使用、BLEのみ
