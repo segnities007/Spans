@@ -1,10 +1,11 @@
 package com.segnities007.navigation.hub
 
+import com.segnities007.navigation.NavRoute
 import kotlinx.serialization.Serializable
 
 // ハブ（メインアプリフロー）
 @Serializable
-sealed interface HubNavRoute {
+sealed interface HubNavRoute : NavRoute {
     @Serializable
     data object Plaza : HubNavRoute
 

@@ -12,12 +12,23 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.segnities007.signin.SignInScreen
+import com.segnities007.signup.SignUpScreen
 
+/**
+ * 認証フローのナビゲーショングラフ
+ *
+ * @param modifier Modifier
+ * @param navController ナビゲーションコントローラー
+ * @param startDestination 初期表示画面
+ * @param onAppNavigate アプリ全体のナビゲーションコールバック (認証完了時なON)
+ */
 @Composable
 fun AuthNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: AuthNavRoute = AuthNavRoute.SignIn,
+    onAppNavigate: () -> Unit = {},
 ) {
     Scaffold{ innerPadding ->
         NavHost(
@@ -26,11 +37,24 @@ fun AuthNavGraph(
             modifier = modifier.padding(innerPadding)
         ) {
             composable<AuthNavRoute.SignIn> {
-                // TODO: auth:ui:SignInScreenをここで呼び出す
+                SignInScreen(
+                    onAuthNavigate = { route ->
+                        navController.navigate(route)
+                    },
+                    onAuthSuccess = onAppNavigate
+                )
             }
 
             composable<AuthNavRoute.SignUp> {
-                // TODO: auth:ui:SignUpScreenをここで呼び出す
+                SignUpScreen(
+                    onAuthNavigate = { route ->
+                        when (route) {
+                            is AuthNavRoute.SignIn -> navController.popBackStack()
+                            else -> navController.navigate(route)
+                        }
+                    },
+                    onAuthSuccess = onAppNavigate
+                )
             }
         }
     }

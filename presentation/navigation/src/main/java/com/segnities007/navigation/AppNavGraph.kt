@@ -10,7 +10,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.segnities007.navigation.auth.AuthNavRoute
+import com.segnities007.navigation.auth.AuthNavGraph
+import com.segnities007.navigation.hub.HubNavGraph
 
 /**
  * アプリ全体のナビゲーショングラフ
@@ -33,11 +34,25 @@ fun AppNavGraph(
         modifier = modifier
     ) {
         composable<AppNavRoute.Auth> {
-            // TODO: Auth
+            AuthNavGraph(
+                onAppNavigate = {
+                    // 認証完了時はHubへ遷移
+                    navController.navigate(AppNavRoute.Hub()) {
+                        popUpTo<AppNavRoute.Auth> { inclusive = true }
+                    }
+                }
+            )
         }
         
         composable<AppNavRoute.Hub> {
-            // TODO: Hub
+            HubNavGraph(
+                onAppNavigate = {
+                    // ログアウト時は認証画面へ
+                    navController.navigate(AppNavRoute.Auth()) {
+                        popUpTo<AppNavRoute.Hub> { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

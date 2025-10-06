@@ -58,6 +58,15 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
     
+    // UI Modules - Presentation Layer
+    api(project(":presentation:ui:signin"))
+    api(project(":presentation:ui:signup"))
+    api(project(":presentation:ui:post"))
+    api(project(":presentation:ui:timeline"))
+    api(project(":presentation:ui:search"))
+    api(project(":presentation:ui:profile"))
+    api(project(":presentation:ui:settings"))
+    
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
