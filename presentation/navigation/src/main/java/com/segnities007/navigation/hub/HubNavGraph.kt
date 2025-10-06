@@ -3,15 +3,16 @@ package com.segnities007.navigation.hub
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.segnities007.post.PostScreen
+import com.segnities007.timeline.TimelineScreen
+import com.segnities007.search.SearchScreen
+import com.segnities007.profile.ProfileScreen
+import com.segnities007.settings.SettingsScreen
 
 /**
  * ハブ(メインアプリ)のナビゲーショングラフ
@@ -21,12 +22,14 @@ import androidx.navigation.compose.rememberNavController
  * @param modifier Modifier
  * @param navController ナビゲーションコントローラー
  * @param startDestination 初期表示画面(デフォルト: Plaza)
+ * @param onAppNavigate アプリ全体のナビゲーションコールバック (ログアウト時など)
  */
 @Composable
 fun HubNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: HubNavRoute = HubNavRoute.Plaza,
+    onAppNavigate: () -> Unit = {},
 ) {
 
     Scaffold{ innerPadding ->
@@ -36,23 +39,56 @@ fun HubNavGraph(
             modifier = modifier.padding(innerPadding)
         ) {
             composable<HubNavRoute.Plaza> {
-                // TODO: hub:ui:PlazaScreenをここで呼び出す
+                PostScreen(
+                    onHubNavigate = { route ->
+                        navController.navigate(route)
+                    }
+                )
             }
 
             composable<HubNavRoute.Timeline> {
-                // TODO: hub:ui:TimelineScreenをここで呼び出す
+                TimelineScreen(
+                    onHubNavigate = { route ->
+                        when (route) {
+                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            else -> navController.navigate(route)
+                        }
+                    }
+                )
             }
 
             composable<HubNavRoute.Search> {
-                // TODO: hub:ui:SearchScreenをここで呼び出す
+                SearchScreen(
+                    onHubNavigate = { route ->
+                        when (route) {
+                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            else -> navController.navigate(route)
+                        }
+                    }
+                )
             }
 
             composable<HubNavRoute.Profile> {
-                // TODO: hub:ui:ProfileScreenをここで呼び出す
+                ProfileScreen(
+                    onHubNavigate = { route ->
+                        when (route) {
+                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            else -> navController.navigate(route)
+                        }
+                    }
+                )
             }
 
             composable<HubNavRoute.Settings> {
-                // TODO: hub:ui:SettingsScreenをここで呼び出す
+                SettingsScreen(
+                    onHubNavigate = { route ->
+                        when (route) {
+                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            else -> navController.navigate(route)
+                        }
+                    },
+                    onLogout = onAppNavigate
+                )
             }
         }
     }
