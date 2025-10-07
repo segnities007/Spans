@@ -59,13 +59,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     
     // UI Modules - Presentation Layer
-    api(project(":presentation:ui:signin"))
-    api(project(":presentation:ui:signup"))
-    api(project(":presentation:ui:post"))
-    api(project(":presentation:ui:timeline"))
-    api(project(":presentation:ui:search"))
-    api(project(":presentation:ui:profile"))
-    api(project(":presentation:ui:settings"))
+    implementation(project(":presentation:ui:signin"))
+    implementation(project(":presentation:ui:signup"))
+    implementation(project(":presentation:ui:post"))
+    implementation(project(":presentation:ui:timeline"))
+    implementation(project(":presentation:ui:search"))
+    implementation(project(":presentation:ui:profile"))
+    implementation(project(":presentation:ui:settings"))
     
     // Testing
     testImplementation(libs.junit)
