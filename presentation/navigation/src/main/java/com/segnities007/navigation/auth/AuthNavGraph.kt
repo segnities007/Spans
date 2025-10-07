@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.segnities007.common.Auth
 import com.segnities007.signin.SignInScreen
 import com.segnities007.signup.SignUpScreen
 
@@ -21,13 +22,13 @@ import com.segnities007.signup.SignUpScreen
  * @param modifier Modifier
  * @param navController ナビゲーションコントローラー
  * @param startDestination 初期表示画面
- * @param onAppNavigate アプリ全体のナビゲーションコールバック (認証完了時なON)
+ * @param onAppNavigate アプリ全体のナビゲーションコールバック (認証完了時など)
  */
 @Composable
 fun AuthNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: AuthNavRoute = AuthNavRoute.SignIn,
+    startDestination: Auth = Auth.SignIn,
     onAppNavigate: () -> Unit = {},
 ) {
     Scaffold{ innerPadding ->
@@ -36,7 +37,7 @@ fun AuthNavGraph(
             startDestination = startDestination,
             modifier = modifier.padding(innerPadding)
         ) {
-            composable<AuthNavRoute.SignIn> {
+            composable<Auth.SignIn> {
                 SignInScreen(
                     onAuthNavigate = { route ->
                         navController.navigate(route)
@@ -45,11 +46,11 @@ fun AuthNavGraph(
                 )
             }
 
-            composable<AuthNavRoute.SignUp> {
+            composable<Auth.SignUp> {
                 SignUpScreen(
                     onAuthNavigate = { route ->
                         when (route) {
-                            is AuthNavRoute.SignIn -> navController.popBackStack()
+                            is Auth.SignIn -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     },

@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.navigation.hub.HubNavRoute
+import com.segnities007.common.Hub
 
 /**
  * 検索画面
@@ -17,7 +17,7 @@ import com.segnities007.navigation.hub.HubNavRoute
  */
 @Composable
 fun SearchScreen(
-    onHubNavigate: (HubNavRoute) -> Unit = {},
+    onHubNavigate: (Hub) -> Unit = {},
 ) {
     SearchContent(
         onHubNavigate = onHubNavigate
@@ -26,7 +26,7 @@ fun SearchScreen(
 
 @Composable
 private fun SearchContent(
-    onHubNavigate: (HubNavRoute) -> Unit,
+    onHubNavigate: (Hub) -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -36,6 +36,6 @@ private fun SearchContent(
         // TODO: 実装する
         // - 検索バー
         // - 検索結果一覧 (ユーザー、投稿)
-        // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
+        // - 戻るボタン: onHubNavigate(Hub.Plaza)
     }
 }

@@ -51,8 +51,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     
-    // Navigation
-    implementation(project(":presentation:navigation"))
+    // Common - Navigation Routes
+    implementation(project(":presentation:common"))
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -5,3 +5,9 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.android.library) apply false
 }
+
+// AppNavRouteのツリー構造を出力するタスクを登録
+tasks.register<NavRouteTreeGenerator>("generateNavRouteTree") {
+    group = "documentation"
+    description = "AppNavRouteのツリー構造をコンソールとファイルに出力します"
+}

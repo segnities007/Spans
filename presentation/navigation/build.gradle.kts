@@ -58,6 +58,9 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
     
+    // Common - Navigation Routes
+    implementation(project(":presentation:common"))
+    
     // UI Modules - Presentation Layer
     implementation(project(":presentation:ui:signin"))
     implementation(project(":presentation:ui:signup"))

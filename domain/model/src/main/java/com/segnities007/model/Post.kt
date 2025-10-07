@@ -21,6 +21,10 @@ data class Post(
         const val MAX_IMAGE_SIZE_MB = 10
         const val MAX_VIDEO_SIZE_MB = 50
         const val MAX_VIDEO_DURATION_SECONDS = 60
+        
+        fun isContentValid(content: String): Boolean {
+            return content.length in MIN_CONTENT_LENGTH..MAX_CONTENT_LENGTH
+        }
     }
 
     enum class MediaType {

@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.navigation.hub.HubNavRoute
+import com.segnities007.common.Hub
 
 /**
  * 設定画面
@@ -18,7 +18,7 @@ import com.segnities007.navigation.hub.HubNavRoute
  */
 @Composable
 fun SettingsScreen(
-    onHubNavigate: (HubNavRoute) -> Unit = {},
+    onHubNavigate: (Hub) -> Unit = {},
     onLogout: () -> Unit = {},
 ) {
     SettingsContent(
@@ -29,7 +29,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsContent(
-    onHubNavigate: (HubNavRoute) -> Unit,
+    onHubNavigate: (Hub) -> Unit,
     onLogout: () -> Unit,
 ) {
     Box(
@@ -42,6 +42,6 @@ private fun SettingsContent(
         // - プライバシー設定
         // - 通知設定
         // - ログアウトボタン: onLogout()
-        // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
+        // - 戻るボタン: onHubNavigate(Hub.Plaza)
     }
 }

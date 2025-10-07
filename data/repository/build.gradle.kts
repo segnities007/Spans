@@ -37,6 +37,19 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+    
+    // Domain Layer
+    implementation(project(":domain:model"))
+    implementation(project(":domain:repository"))
+    
+    // Data Layer
+    implementation(project(":data:local:db"))
+    implementation(project(":data:remote"))
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

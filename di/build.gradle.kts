@@ -33,7 +33,16 @@ android {
 }
 
 dependencies {
-
+    // Koin
+    implementation(libs.koin.android)
+    implementation(libs.koin.core)
+    
+    // Domain & Data layers
+    implementation(project(":domain:repository"))
+    implementation(project(":data:repository"))
+    implementation(project(":data:remote"))
+    implementation(project(":data:local:db"))
+    
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

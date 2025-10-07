@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface EncounterDao {
     @Query("SELECT * FROM encounters WHERE id = :id")
-    suspend fun getEncounterById(id: Long): EncounterEntity?
+    suspend fun getEncounterById(id: String): EncounterEntity?
     
-    @Query("SELECT * FROM encounters ORDER BY detected_at DESC LIMIT :limit OFFSET :offset")
+    @Query("SELECT * FROM encounters ORDER BY last_encounter_at DESC LIMIT :limit OFFSET :offset")
     suspend fun getEncounters(limit: Int, offset: Int): List<EncounterEntity>
     
     @Query("SELECT * FROM encounters WHERE user_uuid_a = :userUuid OR user_uuid_b = :userUuid ORDER BY last_encounter_at DESC")
@@ -23,7 +23,7 @@ interface EncounterDao {
     @Query("SELECT * FROM encounters WHERE last_encounter_at >= :startTime AND last_encounter_at <= :endTime ORDER BY last_encounter_at DESC")
     suspend fun getEncountersInTimeRange(startTime: Long, endTime: Long): List<EncounterEntity>
     
-    @Query("SELECT * FROM encounters ORDER BY detected_at DESC")
+    @Query("SELECT * FROM encounters ORDER BY last_encounter_at DESC")
     fun observeEncounters(): Flow<List<EncounterEntity>>
     
     @Query("SELECT COUNT(*) FROM encounters")
@@ -48,7 +48,7 @@ interface EncounterDao {
     suspend fun deleteEncounter(encounter: EncounterEntity)
     
     @Query("DELETE FROM encounters WHERE id = :id")
-    suspend fun deleteEncounterById(id: Long)
+    suspend fun deleteEncounterById(id: String)
     
     @Query("DELETE FROM encounters WHERE last_encounter_at < :expiryTime")
     suspend fun deleteOldEncounters(expiryTime: Long): Int

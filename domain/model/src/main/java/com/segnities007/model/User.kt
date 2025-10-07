@@ -16,6 +16,10 @@ data class User(
         const val MIN_NICKNAME_LENGTH = 2
         const val MAX_NICKNAME_LENGTH = 20
         const val MAX_BIO_LENGTH = 500
+        
+        fun isNicknameValid(nickname: String): Boolean {
+            return nickname.length in MIN_NICKNAME_LENGTH..MAX_NICKNAME_LENGTH
+        }
     }
 
     fun isValidNickname(): Boolean {

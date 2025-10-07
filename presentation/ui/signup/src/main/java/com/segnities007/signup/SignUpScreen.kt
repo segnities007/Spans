@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.navigation.auth.AuthNavRoute
+import com.segnities007.common.Auth
 
 /**
  * サインアップ画面
@@ -18,7 +18,7 @@ import com.segnities007.navigation.auth.AuthNavRoute
  */
 @Composable
 fun SignUpScreen(
-    onAuthNavigate: (AuthNavRoute) -> Unit = {},
+    onAuthNavigate: (Auth) -> Unit = {},
     onAuthSuccess: () -> Unit = {},
 ) {
     SignUpContent(
@@ -29,7 +29,7 @@ fun SignUpScreen(
 
 @Composable
 private fun SignUpContent(
-    onAuthNavigate: (AuthNavRoute) -> Unit,
+    onAuthNavigate: (Auth) -> Unit,
     onAuthSuccess: () -> Unit,
 ) {
     Box(
@@ -42,6 +42,6 @@ private fun SignUpContent(
         // - メールアドレス入力フィールド
         // - パスワード入力フィールド
         // - サインアップボタン (成功時: onAuthSuccess())
-        // - サインインリンク (クリック時: onAuthNavigate(AuthNavRoute.SignIn))
+        // - サインインリンク (クリック時: onAuthNavigate(Auth.SignIn))
     }
 }

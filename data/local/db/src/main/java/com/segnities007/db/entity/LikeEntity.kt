@@ -29,16 +29,17 @@ data class LikeEntity(
 ) {
     fun toDomainModel(): Like {
         return Like(
-            postId = postId,
+            id = id.toString(),
             userUuid = userUuid,
+            postId = postId,
             createdAt = createdAt
         )
     }
     
     companion object {
-        fun fromDomainModel(like: Like, id: Long = 0): LikeEntity {
+        fun fromDomainModel(like: Like): LikeEntity {
             return LikeEntity(
-                id = id,
+                id = like.id.toLongOrNull() ?: 0L,
                 postId = like.postId,
                 userUuid = like.userUuid,
                 createdAt = like.createdAt
