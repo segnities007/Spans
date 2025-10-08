@@ -27,18 +27,24 @@ class GetTimelineUseCase(
             return Result.success(emptyList())
         }
 
-        // すれ違ったユーザーのUUIDリストを作成
-        val encounterUuids = encounters.map { encounter ->
-            // 自分のUUIDは除外する必要があるが、ここでは全て含める
-            listOf(encounter.userUuidA, encounter.userUuidB)
-        }.flatten().distinct()
-
         // すれ違い時刻のマップを作成
-        val encounterTimestamps = encounters.associate { encounter ->
-            encounter.userUuidA to encounter.lastEncounterAt
-        } + encounters.associate { encounter ->
-            encounter.userUuidB to encounter.lastEncounterAt
+        // 重複ユーザーがいる場合は最新の lastEncounterAt を保持
+        val encounterTimestamps = buildMap<String, Long> {
+            encounters.forEach { encounter ->
+                // userUuidA の最大タイムスタンプを保持
+                merge(encounter.userUuidA, encounter.lastEncounterAt) { existing, new ->
+                    maxOf(existing, new)
+                }
+                // userUuidB の最大タイムスタンプを保持
+                merge(encounter.userUuidB, encounter.lastEncounterAt) { existing, new ->
+                    maxOf(existing, new)
+                }
+            }
         }
+        
+        // すれ違ったユーザーのUUIDリスト（重複なし）
+        // TODO: 将来的に自分のUUIDを除外する
+        val encounterUuids = encounterTimestamps.keys.toList()
 
         // 早期リターン: タイムライン取得失敗
         val timelineResult = postRepository.getTimeline(
