@@ -29,7 +29,7 @@ interface EncounterDao {
     @Query("SELECT COUNT(*) FROM encounters")
     suspend fun getEncounterCount(): Int
     
-    @Query("SELECT COUNT(*) FROM encounters WHERE user_uuid_a = :userUuid OR user_uuid_b = :userUuid")
+    @Query("SELECT COUNT(DISTINCT CASE WHEN user_uuid_a = :userUuid THEN user_uuid_b ELSE user_uuid_a END) FROM encounters WHERE user_uuid_a = :userUuid OR user_uuid_b = :userUuid")
     suspend fun getUniquePartnerCount(userUuid: String): Int
     
     @Query("SELECT * FROM encounters WHERE last_encounter_at >= :since ORDER BY last_encounter_at DESC")
