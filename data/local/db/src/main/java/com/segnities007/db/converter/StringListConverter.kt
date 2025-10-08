@@ -1,6 +1,7 @@
 package com.segnities007.db.converter
 
 import androidx.room.TypeConverter
+import kotlinx.serialization.json.Json
 
 class StringListConverter {
     @TypeConverter
@@ -11,6 +12,6 @@ class StringListConverter {
     @TypeConverter
     fun toStringList(value: String): List<String> {
         if (value.isBlank()) return emptyList()
-        return value.split(",")
+        return Json.decodeFromString(value)
     }
 }
