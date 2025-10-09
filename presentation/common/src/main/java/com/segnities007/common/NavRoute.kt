@@ -14,11 +14,8 @@ sealed interface AppNavRoute {
     data class Hub(val route: HubRoute? = null) : AppNavRoute
 }
 
-/**
- * 認証フローのルート
- */
 @Serializable
-sealed interface AuthRoute : NavRoute {
+sealed interface AuthRoute : AppNavRoute {
     @Serializable
     data object SignIn : AuthRoute
 
@@ -27,10 +24,10 @@ sealed interface AuthRoute : NavRoute {
 }
 
 /**
- * ハブ(メインアプリ)フローのルート
+ * メインアプリルート
  */
 @Serializable
-sealed interface HubRoute : NavRoute {
+sealed interface HubRoute : AppNavRoute {
     @Serializable
     data object Plaza : HubRoute
 
