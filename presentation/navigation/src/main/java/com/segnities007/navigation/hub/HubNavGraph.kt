@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.segnities007.common.route.HubNavRoute
 import com.segnities007.post.PostScreen
 import com.segnities007.timeline.TimelineScreen
 import com.segnities007.search.SearchScreen
@@ -50,7 +51,7 @@ fun HubNavGraph(
                 TimelineScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     }
@@ -61,7 +62,7 @@ fun HubNavGraph(
                 SearchScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     }
@@ -72,7 +73,7 @@ fun HubNavGraph(
                 ProfileScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     }
@@ -83,7 +84,7 @@ fun HubNavGraph(
                 SettingsScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is HubNavRoute.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     },

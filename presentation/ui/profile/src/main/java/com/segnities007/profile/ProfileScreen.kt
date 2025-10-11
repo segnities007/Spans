@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.navigation.hub.HubNavRoute
+import com.segnities007.common.route.HubNavRoute
 
 /**
  * プロフィール画面
@@ -37,7 +37,7 @@ private fun ProfileContent(
         // - プロフィール画像
         // - ユーザー名、バイオ、その他情報
         // - 編集ボタン
-        // - 設定ボタン: onHubNavigate(HubNavRoute.SettingHubNavRoutes)
-        // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
+    // - 設定ボタン: onHubNavigate(HubNavRoute.Settings)
+    // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
     }
 }

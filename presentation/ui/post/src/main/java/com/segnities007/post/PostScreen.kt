@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.navigation.hub.HubNavRoute
+import com.segnities007.common.route.HubNavRoute
 
 /**
  * 投稿画面 (Plaza)
@@ -37,9 +37,9 @@ private fun PostContent(
         // - すれ違ったユーザーの投稿一覧
         // - 投稿作成フォーム
         // - ボトムナビゲーションバー
-        //   - Timeline: onHubNavigate(HubNavRoute.Timeline)
-        //   - Search: onHubNavigate(HubNavRoute.Search)
-        //   - Profile: onHubNavigate(HubNavRoute.Profile)
-        //   - Settings: onHubNavigate(HubNavRoute.Settings)
+    //   - Timeline: onHubNavigate(HubNavRoute.Timeline)
+    //   - Search: onHubNavigate(HubNavRoute.Search)
+    //   - Profile: onHubNavigate(HubNavRoute.Profile)
+    //   - Settings: onHubNavigate(HubNavRoute.Settings)
     }
 }

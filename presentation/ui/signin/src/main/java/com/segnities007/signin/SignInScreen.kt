@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.navigation.auth.AuthNavRoute
+import com.segnities007.common.route.AuthNavRoute
 
 /**
  * サインイン画面
@@ -38,9 +38,5 @@ private fun SignInContent(
     ) {
         Text("SignIn Screen")
         // TODO: 実装する
-        // - メールアドレス入力フィールド
-        // - パスワード入力フィールド
-        // - サインインボタン (成功時: onAuthSuccess())
-        // - サインアップリンク (クリック時: onAuthNavigate(AuthNavRoute.SignUp))
     }
 }

@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.navigation.hub.HubNavRoute
+import com.segnities007.common.route.HubNavRoute
 
 /**
  * 検索画面
@@ -36,6 +36,6 @@ private fun SearchContent(
         // TODO: 実装する
         // - 検索バー
         // - 検索結果一覧 (ユーザー、投稿)
-        // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
+    // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
     }
 }

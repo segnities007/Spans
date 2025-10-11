@@ -33,7 +33,22 @@ android {
 }
 
 dependencies {
-
+    // Koin
+    implementation(libs.koin.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.androidx.compose)
+    
+    // Domain & Data layers
+    implementation(project(":domain:repository"))
+    implementation(project(":domain:usecase"))
+    implementation(project(":data:repository"))
+    implementation(project(":data:remote"))
+    implementation(project(":data:local:db"))
+    
+    // Presentation layer - ViewModels
+    implementation(project(":presentation:ui:signup"))
+    // TODO: 他の画面のViewModelモジュールも追加
+    
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

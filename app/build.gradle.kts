@@ -40,6 +40,12 @@ android {
 }
 
 dependencies {
+    // Koin
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    
+    // DI
+    implementation(project(":di"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -57,7 +63,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    //navigation
-    implementation(libs.androidx.navigation.compose)
     implementation(project(":presentation:navigation"))
 }
