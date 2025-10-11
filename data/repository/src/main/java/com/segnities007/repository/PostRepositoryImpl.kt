@@ -1,7 +1,6 @@
 package com.segnities007.repository
 
 import com.segnities007.model.Post
-import com.segnities007.model.exception.DomainException
 import com.segnities007.repository.PostRepository
 import com.segnities007.remote.datasource.PostRemoteDataSource
 import com.segnities007.db.dao.PostDao
@@ -45,16 +44,6 @@ class PostRepositoryImpl(
         mediaData: ByteArray?,
         mediaType: Post.MediaType?
     ): Result<Post> {
-        // コンテンツバリデーション
-        if (!Post.isContentValid(content)) {
-            return Result.failure(
-                DomainException.ValidationError(
-                    field = "content",
-                    message = "投稿は${Post.MIN_CONTENT_LENGTH}～${Post.MAX_CONTENT_LENGTH}文字で入力してください"
-                )
-            )
-        }
-        
         return remoteDataSource.createPost(content, mediaData, mediaType)
     }
     
@@ -62,15 +51,6 @@ class PostRepositoryImpl(
         postId: String,
         content: String
     ): Result<Post> {
-        if (!Post.isContentValid(content)) {
-            return Result.failure(
-                DomainException.ValidationError(
-                    field = "content",
-                    message = "投稿は${Post.MIN_CONTENT_LENGTH}～${Post.MAX_CONTENT_LENGTH}文字で入力してください"
-                )
-            )
-        }
-        
         return remoteDataSource.updatePost(postId, content)
     }
     

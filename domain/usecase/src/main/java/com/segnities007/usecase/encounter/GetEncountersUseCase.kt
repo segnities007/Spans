@@ -7,27 +7,22 @@ class GetEncountersUseCase(
     private val encounterRepository: EncounterRepository
 ) {
     suspend operator fun invoke(): Result<List<Encounter>> {
-        // 早期リターン: すれ違い情報取得失敗
-        val encountersResult = encounterRepository.getEncounters()
-        if (encountersResult.isFailure) {
-            return encountersResult
-        }
+        return encounterRepository.getEncounters().fold(
+            onSuccess = { encounters ->
+                // 早期リターン: すれ違いがない
+                if (encounters.isEmpty()) {
+                    return Result.success(emptyList())
+                }
 
-        val encounters = encountersResult.getOrNull()
-
-        // 早期リターン: すれ違いがない
-        if (encounters.isNullOrEmpty()) {
-            return Result.success(emptyList())
-        }
-
-        // ユーザー情報で補完
-        val enrichedResult = encounterRepository.enrichEncountersWithUserInfo(encounters)
-
-        // 失敗した場合は元のデータを返す
-        return if (enrichedResult.isFailure) {
-            Result.success(encounters)
-        } else {
-            enrichedResult
-        }
+                // ユーザー情報で補完（失敗した場合は元のデータを返す）
+                encounterRepository.enrichEncountersWithUserInfo(encounters).fold(
+                    onSuccess = { enriched -> Result.success(enriched) },
+                    onFailure = { Result.success(encounters) }
+                )
+            },
+            onFailure = { error ->
+                Result.failure(error)
+            }
+        )
     }
 }

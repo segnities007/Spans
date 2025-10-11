@@ -1,6 +1,7 @@
 package com.segnities007.usecase.auth
 
 import com.segnities007.model.User
+import com.segnities007.model.exception.DomainException
 import com.segnities007.repository.AuthRepository
 
 class SignUpUseCase(
@@ -8,39 +9,19 @@ class SignUpUseCase(
 ) {
     suspend operator fun invoke(
         nickname: String,
-        bio: String? = null,
-        avatarData: ByteArray? = null
+        bio: String,
+        avatarData: ByteArray?
     ): Result<User> {
-        // 早期リターン: ニックネーム検証
-        if (nickname.isBlank()) {
-            return Result.failure(
-                IllegalArgumentException("ニックネームを入力してください")
-            )
+        // 早期リターン: ニックネームのバリデーション
+        User.validateNickname(nickname)?.let { errorMessage ->
+            return Result.failure(DomainException.ValidationError("nickname", errorMessage))
         }
 
-        if (nickname.length < User.MIN_NICKNAME_LENGTH) {
-            return Result.failure(
-                IllegalArgumentException("ニックネームは${User.MIN_NICKNAME_LENGTH}文字以上で入力してください")
-            )
+        // 早期リターン: 自己紹介のバリデーション
+        User.validateBio(bio)?.let { errorMessage ->
+            return Result.failure(DomainException.ValidationError("bio", errorMessage))
         }
 
-        if (nickname.length > User.MAX_NICKNAME_LENGTH) {
-            return Result.failure(
-                IllegalArgumentException("ニックネームは${User.MAX_NICKNAME_LENGTH}文字以内で入力してください")
-            )
-        }
-
-        // 早期リターン: 自己紹介検証
-        if (bio != null && bio.length > User.MAX_BIO_LENGTH) {
-            return Result.failure(
-                IllegalArgumentException("自己紹介は${User.MAX_BIO_LENGTH}文字以内で入力してください")
-            )
-        }
-
-        return authRepository.signUp(
-            nickname = nickname,
-            bio = bio,
-            avatarData = avatarData
-        )
+        return authRepository.signUp(nickname, bio, avatarData)
     }
 }
