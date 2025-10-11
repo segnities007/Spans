@@ -1,5 +1,7 @@
 package com.segnities007.usecase.post
 
+import com.segnities007.model.Post
+import com.segnities007.model.exception.DomainException
 import com.segnities007.repository.PostRepository
 
 class DeletePostUseCase(
@@ -7,10 +9,8 @@ class DeletePostUseCase(
 ) {
     suspend operator fun invoke(postId: String): Result<Unit> {
         // 早期リターン: 投稿ID検証
-        if (postId.isBlank()) {
-            return Result.failure(
-                IllegalArgumentException("投稿IDが無効です")
-            )
+        Post.validatePostId(postId)?.let { errorMessage ->
+            return Result.failure(DomainException.ValidationError("postId", errorMessage))
         }
 
         return postRepository.deletePost(postId)

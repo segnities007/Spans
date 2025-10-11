@@ -1,6 +1,7 @@
 package com.segnities007.usecase.post
 
 import com.segnities007.model.Post
+import com.segnities007.model.exception.DomainException
 import com.segnities007.repository.PostRepository
 
 class CreatePostUseCase(
@@ -8,31 +9,14 @@ class CreatePostUseCase(
 ) {
     suspend operator fun invoke(
         content: String,
-        mediaData: ByteArray? = null,
-        mediaType: Post.MediaType? = null
+        mediaData: ByteArray?,
+        mediaType: Post.MediaType?
     ): Result<Post> {
-        // 早期リターン: コンテンツ検証
+        // 早期リターン: 投稿内容のバリデーション
         Post.validateContent(content)?.let { errorMessage ->
-            return Result.failure(IllegalArgumentException(errorMessage))
+            return Result.failure(DomainException.ValidationError("content", errorMessage))
         }
 
-        // 早期リターン: メディアデータとタイプの整合性チェック
-        if (mediaData != null && mediaType == null) {
-            return Result.failure(
-                IllegalArgumentException("メディアタイプを指定してください")
-            )
-        }
-
-        if (mediaData == null && mediaType != null) {
-            return Result.failure(
-                IllegalArgumentException("メディアデータが必要です")
-            )
-        }
-
-        return postRepository.createPost(
-            content = content.trim(),
-            mediaData = mediaData,
-            mediaType = mediaType
-        )
+        return postRepository.createPost(content, mediaData, mediaType)
     }
 }

@@ -37,6 +37,19 @@ data class Post(
                 else -> null
             }
         }
+        
+        /**
+         * 投稿IDのバリデーションを実行し、エラーメッセージを返す
+         * 
+         * @return エラーメッセージ（エラーがない場合はnull）
+         */
+        fun validatePostId(postId: String): String? {
+            return if (postId.isBlank()) {
+                "投稿IDが無効です"
+            } else {
+                null
+            }
+        }
     }
 
     enum class MediaType {

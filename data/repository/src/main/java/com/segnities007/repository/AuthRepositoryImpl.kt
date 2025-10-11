@@ -15,8 +15,7 @@ class AuthRepositoryImpl(
     
     override suspend fun signInWithGoogle(idToken: String): Result<User> {
         return remoteDataSource.signInWithGoogle(idToken)
-            .onSuccess { _authState.value = true }
-            .onFailure { _authState.value = false }
+            .also { result -> updateAuthState(result.isSuccess) }
     }
     
     override suspend fun signUp(
@@ -25,12 +24,16 @@ class AuthRepositoryImpl(
         avatarData: ByteArray?
     ): Result<User> {
         return remoteDataSource.signUp(nickname, bio, avatarData)
-            .onSuccess { _authState.value = true }
+            .also { result -> updateAuthState(result.isSuccess) }
     }
     
     override suspend fun signOut(): Result<Unit> {
         return remoteDataSource.signOut()
-            .onSuccess { _authState.value = false }
+            .also { result -> if (result.isSuccess) _authState.value = false }
+    }
+    
+    private fun updateAuthState(isAuthenticated: Boolean) {
+        _authState.value = isAuthenticated
     }
     
     override suspend fun isSessionValid(): Result<Boolean> {

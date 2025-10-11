@@ -1,6 +1,7 @@
 package com.segnities007.usecase.auth
 
 import com.segnities007.model.User
+import com.segnities007.model.exception.DomainException
 import com.segnities007.repository.AuthRepository
 
 class SignInWithGoogleUseCase(
@@ -8,10 +9,8 @@ class SignInWithGoogleUseCase(
 ) {
     suspend operator fun invoke(idToken: String): Result<User> {
         // 早期リターン: IDトークンが空白
-        if (idToken.isBlank()) {
-            return Result.failure(
-                IllegalArgumentException("IDトークンが空です")
-            )
+        User.validateIdToken(idToken)?.let { errorMessage ->
+            return Result.failure(DomainException.ValidationError("idToken", errorMessage))
         }
 
         return authRepository.signInWithGoogle(idToken)

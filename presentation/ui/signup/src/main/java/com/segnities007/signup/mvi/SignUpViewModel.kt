@@ -47,38 +47,32 @@ class SignUpViewModel(
             // TODO: avatarUriをByteArrayに変換する処理を実装
             val avatarData: ByteArray? = null
 
-            val result = signUpUseCase(
+            signUpUseCase(
                 nickname = submittingState.nickname,
                 bio = submittingState.bio,
                 avatarData = avatarData
-            )
+            ).fold(
+                onSuccess = { user ->
+                    setState(SignUpUiState.Success(user = user))
+                    sendEffect(SignUpEffect.NavigateToPlaza)
+                    sendEffect(SignUpEffect.ShowSuccess("サインアップに成功しました"))
+                },
+                onFailure = { throwable ->
+                    val errorMessage = throwable.message ?: "不明なエラーが発生しました"
+                    val (nicknameError, bioError) = extractFieldErrors(throwable)
 
-            if (result.isSuccess) {
-                // 成功状態への更新はReducerでは行わず、直接設定
-                // （READMEの例に従い、UseCaseの結果は直接状態に反映）
-                val user = result.getOrNull() ?: return@launch
-                setState(SignUpUiState.Success(user = user))
-                sendEffect(SignUpEffect.NavigateToPlaza)
-                sendEffect(SignUpEffect.ShowSuccess("サインアップに成功しました"))
-            } else {
-                // Result型からエラー情報を取得
-                val throwable = result.exceptionOrNull()
-                
-                // エラーメッセージとフィールドエラーを抽出
-                val errorMessage = throwable?.message ?: "不明なエラーが発生しました"
-                val (nicknameError, bioError) = extractFieldErrors(throwable)
-
-                setState(
-                    SignUpUiState.Failed(
-                        nickname = submittingState.nickname,
-                        bio = submittingState.bio,
-                        avatarUri = submittingState.avatarUri,
-                        nicknameError = nicknameError,
-                        bioError = bioError
+                    setState(
+                        SignUpUiState.Failed(
+                            nickname = submittingState.nickname,
+                            bio = submittingState.bio,
+                            avatarUri = submittingState.avatarUri,
+                            nicknameError = nicknameError,
+                            bioError = bioError
+                        )
                     )
-                )
-                sendEffect(SignUpEffect.ShowError(errorMessage))
-            }
+                    sendEffect(SignUpEffect.ShowError(errorMessage))
+                }
+            )
         }
     }
 
@@ -92,14 +86,6 @@ class SignUpViewModel(
                 when (throwable.field) {
                     "nickname" -> throwable.message to null
                     "bio" -> null to throwable.message
-                    else -> null to null
-                }
-            }
-            is IllegalArgumentException -> {
-                val message = throwable.message ?: return null to null
-                when {
-                    message.contains("ニックネーム") -> message to null
-                    message.contains("自己紹介") -> null to message
                     else -> null to null
                 }
             }

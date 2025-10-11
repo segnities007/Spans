@@ -46,5 +46,18 @@ data class User(
                 else -> null
             }
         }
+        
+        /**
+         * Google IDトークンのバリデーションを実行し、エラーメッセージを返す
+         * 
+         * @return エラーメッセージ（エラーがない場合はnull）
+         */
+        fun validateIdToken(idToken: String): String? {
+            return if (idToken.isBlank()) {
+                "IDトークンが空です"
+            } else {
+                null
+            }
+        }
     }
 }

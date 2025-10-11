@@ -26,13 +26,10 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
 
         val trimmedNickname = intent.nickname.trim()
 
-        return SignUpUiState.Wait(
+        return createWaitState(
             nickname = trimmedNickname,
             bio = snapshot.second,
-            avatarUri = snapshot.third,
-            nicknameError = User.validateNickname(trimmedNickname),
-            bioError = User.validateBio(snapshot.second),
-            isSubmitting = false
+            avatarUri = snapshot.third
         )
     }
 
@@ -45,13 +42,10 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
 
         val trimmedBio = intent.bio.trim()
 
-        return SignUpUiState.Wait(
+        return createWaitState(
             nickname = snapshot.first,
             bio = trimmedBio,
-            avatarUri = snapshot.third,
-            nicknameError = User.validateNickname(snapshot.first),
-            bioError = User.validateBio(trimmedBio),
-            isSubmitting = false
+            avatarUri = snapshot.third
         )
     }
 
@@ -62,13 +56,10 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
         // 早期リターン: 編集状態以外は無視
         val snapshot = state.formSnapshot() ?: return state
 
-        return SignUpUiState.Wait(
+        return createWaitState(
             nickname = snapshot.first,
             bio = snapshot.second,
-            avatarUri = intent.uri,
-            nicknameError = User.validateNickname(snapshot.first),
-            bioError = User.validateBio(snapshot.second),
-            isSubmitting = false
+            avatarUri = intent.uri
         )
     }
 
@@ -79,13 +70,29 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
         // AvatarSelectedと同じロジック（uri = null）
         val snapshot = state.formSnapshot() ?: return state
 
-        return SignUpUiState.Wait(
+        return createWaitState(
             nickname = snapshot.first,
             bio = snapshot.second,
-            avatarUri = null,
-            nicknameError = User.validateNickname(snapshot.first),
-            bioError = User.validateBio(snapshot.second),
-            isSubmitting = false
+            avatarUri = null
+        )
+    }
+    
+    /**
+     * バリデーション付きのWait状態を生成
+     */
+    private fun createWaitState(
+        nickname: String,
+        bio: String,
+        avatarUri: String?,
+        isSubmitting: Boolean = false
+    ): SignUpUiState.Wait {
+        return SignUpUiState.Wait(
+            nickname = nickname,
+            bio = bio,
+            avatarUri = avatarUri,
+            nicknameError = User.validateNickname(nickname),
+            bioError = User.validateBio(bio),
+            isSubmitting = isSubmitting
         )
     }
 
@@ -101,13 +108,10 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
             }
 
             is SignUpUiState.Failed -> {
-                val waitState = SignUpUiState.Wait(
+                val waitState = createWaitState(
                     nickname = state.nickname,
                     bio = state.bio,
-                    avatarUri = state.avatarUri,
-                    nicknameError = User.validateNickname(state.nickname),
-                    bioError = User.validateBio(state.bio),
-                    isSubmitting = false
+                    avatarUri = state.avatarUri
                 )
 
                 if (!waitState.canSubmit) return waitState
@@ -125,13 +129,10 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
         // 早期リターン: エラー状態以外は無視
         if (state !is SignUpUiState.Failed) return state
 
-        return SignUpUiState.Wait(
+        return createWaitState(
             nickname = state.nickname,
             bio = state.bio,
-            avatarUri = state.avatarUri,
-            nicknameError = User.validateNickname(state.nickname),
-            bioError = User.validateBio(state.bio),
-            isSubmitting = false
+            avatarUri = state.avatarUri
         )
     }
 }
