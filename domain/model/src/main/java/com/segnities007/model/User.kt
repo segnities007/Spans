@@ -1,5 +1,10 @@
 package com.segnities007.model
 
+private const val MIN_NICKNAME_LENGTH = 2
+private const val MAX_NICKNAME_LENGTH = 20
+private const val MAX_BIO_LENGTH = 500
+
+
 data class User(
     val uuid: String,
     val googleId: String,
@@ -13,12 +18,33 @@ data class User(
     val updatedAt: Long
 ) {
     companion object {
-        const val MIN_NICKNAME_LENGTH = 2
-        const val MAX_NICKNAME_LENGTH = 20
-        const val MAX_BIO_LENGTH = 500
-        
         fun isNicknameValid(nickname: String): Boolean {
             return nickname.length in MIN_NICKNAME_LENGTH..MAX_NICKNAME_LENGTH
+        }
+        
+        /**
+         * @return エラーメッセージ（エラーがない場合はnull）
+         */
+        fun validateNickname(nickname: String): String? {
+            return when {
+                nickname.isBlank() -> "ニックネームを入力してください"
+                nickname.length < MIN_NICKNAME_LENGTH ->
+                    "ニックネームは${MIN_NICKNAME_LENGTH}文字以上で入力してください"
+                nickname.length > MAX_NICKNAME_LENGTH ->
+                    "ニックネームは${MAX_NICKNAME_LENGTH}文字以内で入力してください"
+                else -> null
+            }
+        }
+        
+        /**
+         * @return エラーメッセージ（エラーがない場合はnull）
+         */
+        fun validateBio(bio: String): String? {
+            return when {
+                bio.length > MAX_BIO_LENGTH ->
+                    "自己紹介は${MAX_BIO_LENGTH}文字以内で入力してください"
+                else -> null
+            }
         }
     }
 

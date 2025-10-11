@@ -30,8 +30,8 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
             nickname = trimmedNickname,
             bio = snapshot.second,
             avatarUri = snapshot.third,
-            nicknameError = validateNickname(trimmedNickname),
-            bioError = validateBio(snapshot.second),
+            nicknameError = User.validateNickname(trimmedNickname),
+            bioError = User.validateBio(snapshot.second),
             isSubmitting = false
         )
     }
@@ -49,8 +49,8 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
             nickname = snapshot.first,
             bio = trimmedBio,
             avatarUri = snapshot.third,
-            nicknameError = validateNickname(snapshot.first),
-            bioError = validateBio(trimmedBio),
+            nicknameError = User.validateNickname(snapshot.first),
+            bioError = User.validateBio(trimmedBio),
             isSubmitting = false
         )
     }
@@ -66,8 +66,8 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
             nickname = snapshot.first,
             bio = snapshot.second,
             avatarUri = intent.uri,
-            nicknameError = validateNickname(snapshot.first),
-            bioError = validateBio(snapshot.second),
+            nicknameError = User.validateNickname(snapshot.first),
+            bioError = User.validateBio(snapshot.second),
             isSubmitting = false
         )
     }
@@ -83,8 +83,8 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
             nickname = snapshot.first,
             bio = snapshot.second,
             avatarUri = null,
-            nicknameError = validateNickname(snapshot.first),
-            bioError = validateBio(snapshot.second),
+            nicknameError = User.validateNickname(snapshot.first),
+            bioError = User.validateBio(snapshot.second),
             isSubmitting = false
         )
     }
@@ -105,8 +105,8 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
                     nickname = state.nickname,
                     bio = state.bio,
                     avatarUri = state.avatarUri,
-                    nicknameError = validateNickname(state.nickname),
-                    bioError = validateBio(state.bio),
+                    nicknameError = User.validateNickname(state.nickname),
+                    bioError = User.validateBio(state.bio),
                     isSubmitting = false
                 )
 
@@ -129,29 +129,10 @@ object SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
             nickname = state.nickname,
             bio = state.bio,
             avatarUri = state.avatarUri,
-            nicknameError = validateNickname(state.nickname),
-            bioError = validateBio(state.bio),
+            nicknameError = User.validateNickname(state.nickname),
+            bioError = User.validateBio(state.bio),
             isSubmitting = false
         )
-    }
-}
-
-private fun validateNickname(nickname: String): String? {
-    return when {
-        nickname.isBlank() -> "ニックネームを入力してください"
-        nickname.length < User.Companion.MIN_NICKNAME_LENGTH ->
-            "ニックネームは${User.Companion.MIN_NICKNAME_LENGTH}文字以上で入力してください"
-        nickname.length > User.Companion.MAX_NICKNAME_LENGTH ->
-            "ニックネームは${User.Companion.MAX_NICKNAME_LENGTH}文字以内で入力してください"
-        else -> null
-    }
-}
-
-private fun validateBio(bio: String): String? {
-    return when {
-        bio.length > User.Companion.MAX_BIO_LENGTH ->
-            "自己紹介は${User.Companion.MAX_BIO_LENGTH}文字以内で入力してください"
-        else -> null
     }
 }
 

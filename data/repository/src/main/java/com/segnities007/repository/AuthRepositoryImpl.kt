@@ -1,7 +1,6 @@
 package com.segnities007.repository
 
 import com.segnities007.model.User
-import com.segnities007.model.exception.DomainException
 import com.segnities007.repository.AuthRepository
 import com.segnities007.remote.datasource.AuthRemoteDataSource
 import kotlinx.coroutines.flow.Flow
@@ -25,16 +24,6 @@ class AuthRepositoryImpl(
         bio: String?,
         avatarData: ByteArray?
     ): Result<User> {
-        // ニックネームのバリデーション
-        if (!User.isNicknameValid(nickname)) {
-            return Result.failure(
-                DomainException.ValidationError(
-                    field = "nickname",
-                    message = "ニックネームは${User.MIN_NICKNAME_LENGTH}～${User.MAX_NICKNAME_LENGTH}文字で入力してください"
-                )
-            )
-        }
-        
         return remoteDataSource.signUp(nickname, bio, avatarData)
             .onSuccess { _authState.value = true }
     }
