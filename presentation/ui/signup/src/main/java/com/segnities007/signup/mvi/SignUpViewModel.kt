@@ -6,18 +6,12 @@ import com.segnities007.mvi.BaseViewModel
 import com.segnities007.usecase.auth.SignUpUseCase
 import kotlinx.coroutines.launch
 
-/**
- * サインアップ画面のViewModel
- */
 class SignUpViewModel(
     private val signUpUseCase: SignUpUseCase
 ) : BaseViewModel<SignUpUiState, SignUpIntent, SignUpEffect>(
     initialState = SignUpUiState.Wait()
 ) {
 
-    /**
-     * MVIライブラリが要求するIntent処理メソッド
-     */
     override fun onIntent(intent: SignUpIntent) {
         when (intent) {
             is SignUpIntent.NicknameChanged,
@@ -118,28 +112,5 @@ class SignUpViewModel(
      */
     private fun updateState(intent: SignUpIntent) {
         setState(SignUpReducer.reduce(uiState.value, intent))
-    }
-
-    /**
-     * 状態更新のヘルパーメソッド
-     * 
-     * BaseViewModelの_uiStateはprivateのため、Reflectionを使用
-     * 
-     * ※理想的には BaseViewModel に protected setState() を追加すべき
-     */
-    private fun setState(newState: SignUpUiState) {
-        try {
-            val field = this::class.java.superclass?.getDeclaredField("_uiState")
-            field?.isAccessible = true
-            @Suppress("UNCHECKED_CAST")
-            val mutableStateFlow = field?.get(this) as? kotlinx.coroutines.flow.MutableStateFlow<SignUpUiState>
-            mutableStateFlow?.value = newState
-        } catch (e: Exception) {
-            throw IllegalStateException(
-                "BaseViewModelの_uiStateにアクセスできません。" +
-                "BaseViewModelに protected fun setState(newState: State) を追加してください。",
-                e
-            )
-        }
     }
 }
