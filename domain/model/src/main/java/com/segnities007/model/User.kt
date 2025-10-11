@@ -18,11 +18,9 @@ data class User(
     val updatedAt: Long
 ) {
     companion object {
-        fun isNicknameValid(nickname: String): Boolean {
-            return nickname.length in MIN_NICKNAME_LENGTH..MAX_NICKNAME_LENGTH
-        }
-        
         /**
+         * ニックネームのバリデーションを実行し、エラーメッセージを返す
+         * 
          * @return エラーメッセージ（エラーがない場合はnull）
          */
         fun validateNickname(nickname: String): String? {
@@ -37,6 +35,8 @@ data class User(
         }
         
         /**
+         * 自己紹介のバリデーションを実行し、エラーメッセージを返す
+         * 
          * @return エラーメッセージ（エラーがない場合はnull）
          */
         fun validateBio(bio: String): String? {
@@ -46,20 +46,5 @@ data class User(
                 else -> null
             }
         }
-    }
-
-    fun isValidNickname(): Boolean {
-        return nickname.length in MIN_NICKNAME_LENGTH..MAX_NICKNAME_LENGTH
-    }
-
-    fun isValidBio(): Boolean {
-        return bio == null || bio.length <= MAX_BIO_LENGTH
-    }
-
-    fun isValid(): Boolean {
-        return uuid.isNotBlank() &&
-                googleId.isNotBlank() &&
-                isValidNickname() &&
-                isValidBio()
     }
 }

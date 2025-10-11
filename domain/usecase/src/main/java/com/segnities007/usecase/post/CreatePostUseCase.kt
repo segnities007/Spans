@@ -12,22 +12,8 @@ class CreatePostUseCase(
         mediaType: Post.MediaType? = null
     ): Result<Post> {
         // 早期リターン: コンテンツ検証
-        if (content.isBlank()) {
-            return Result.failure(
-                IllegalArgumentException("投稿内容を入力してください")
-            )
-        }
-
-        if (content.length < Post.MIN_CONTENT_LENGTH) {
-            return Result.failure(
-                IllegalArgumentException("投稿内容は${Post.MIN_CONTENT_LENGTH}文字以上で入力してください")
-            )
-        }
-
-        if (content.length > Post.MAX_CONTENT_LENGTH) {
-            return Result.failure(
-                IllegalArgumentException("投稿内容は${Post.MAX_CONTENT_LENGTH}文字以内で入力してください")
-            )
+        Post.validateContent(content)?.let { errorMessage ->
+            return Result.failure(IllegalArgumentException(errorMessage))
         }
 
         // 早期リターン: メディアデータとタイプの整合性チェック

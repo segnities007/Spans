@@ -22,18 +22,26 @@ data class Post(
         const val MAX_VIDEO_SIZE_MB = 50
         const val MAX_VIDEO_DURATION_SECONDS = 60
         
-        fun isContentValid(content: String): Boolean {
-            return content.length in MIN_CONTENT_LENGTH..MAX_CONTENT_LENGTH
+        /**
+         * 投稿内容のバリデーションを実行し、エラーメッセージを返す
+         * 
+         * @return エラーメッセージ（エラーがない場合はnull）
+         */
+        fun validateContent(content: String): String? {
+            return when {
+                content.isBlank() -> "投稿内容を入力してください"
+                content.length < MIN_CONTENT_LENGTH ->
+                    "投稿内容は${MIN_CONTENT_LENGTH}文字以上で入力してください"
+                content.length > MAX_CONTENT_LENGTH ->
+                    "投稿内容は${MAX_CONTENT_LENGTH}文字以内で入力してください"
+                else -> null
+            }
         }
     }
 
     enum class MediaType {
         IMAGE,
         VIDEO
-    }
-
-    fun isValidContent(): Boolean {
-        return content.length in MIN_CONTENT_LENGTH..MAX_CONTENT_LENGTH
     }
 
     fun hasMedia(): Boolean {
@@ -46,14 +54,6 @@ data class Post(
 
     fun isVideoPost(): Boolean {
         return mediaType == MediaType.VIDEO
-    }
-
-    fun isValid(): Boolean {
-        return id.isNotBlank() &&
-                authorUuid.isNotBlank() &&
-                authorNickname.isNotBlank() &&
-                isValidContent() &&
-                !isDeleted
     }
 
     fun toggleLike(): Post {
