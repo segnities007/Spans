@@ -8,7 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.segnities007.common.Hub
+import com.segnities007.common.route.HubNavRoute
 import com.segnities007.post.PostScreen
 import com.segnities007.timeline.TimelineScreen
 import com.segnities007.search.SearchScreen
@@ -29,7 +29,7 @@ import com.segnities007.settings.SettingsScreen
 fun HubNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: Hub = Hub.Plaza,
+    startDestination: HubNavRoute = HubNavRoute.Plaza,
     onAppNavigate: () -> Unit = {},
 ) {
 
@@ -39,7 +39,7 @@ fun HubNavGraph(
             startDestination = startDestination,
             modifier = modifier.padding(innerPadding)
         ) {
-            composable<Hub.Plaza> {
+            composable<HubNavRoute.Plaza> {
                 PostScreen(
                     onHubNavigate = { route ->
                         navController.navigate(route)
@@ -47,44 +47,44 @@ fun HubNavGraph(
                 )
             }
 
-            composable<Hub.Timeline> {
+            composable<HubNavRoute.Timeline> {
                 TimelineScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is Hub.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     }
                 )
             }
 
-            composable<Hub.Search> {
+            composable<HubNavRoute.Search> {
                 SearchScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is Hub.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     }
                 )
             }
 
-            composable<Hub.Profile> {
+            composable<HubNavRoute.Profile> {
                 ProfileScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is Hub.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     }
                 )
             }
 
-            composable<Hub.Settings> {
+            composable<HubNavRoute.Settings> {
                 SettingsScreen(
                     onHubNavigate = { route ->
                         when (route) {
-                            is Hub.Plaza -> navController.popBackStack()
+                            HubNavRoute.Plaza -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     },

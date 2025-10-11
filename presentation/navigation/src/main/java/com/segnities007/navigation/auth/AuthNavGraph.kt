@@ -12,7 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.segnities007.common.Auth
+import com.segnities007.common.route.AuthNavRoute
 import com.segnities007.signin.SignInScreen
 import com.segnities007.signup.SignUpScreen
 
@@ -28,7 +28,7 @@ import com.segnities007.signup.SignUpScreen
 fun AuthNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: Auth = Auth.SignIn,
+    startDestination: AuthNavRoute = AuthNavRoute.SignIn,
     onAppNavigate: () -> Unit = {},
 ) {
     Scaffold{ innerPadding ->
@@ -37,7 +37,7 @@ fun AuthNavGraph(
             startDestination = startDestination,
             modifier = modifier.padding(innerPadding)
         ) {
-            composable<Auth.SignIn> {
+            composable<AuthNavRoute.SignIn> {
                 SignInScreen(
                     onAuthNavigate = { route ->
                         navController.navigate(route)
@@ -46,11 +46,11 @@ fun AuthNavGraph(
                 )
             }
 
-            composable<Auth.SignUp> {
+            composable<AuthNavRoute.SignUp> {
                 SignUpScreen(
                     onAuthNavigate = { route ->
                         when (route) {
-                            is Auth.SignIn -> navController.popBackStack()
+                            AuthNavRoute.SignIn -> navController.popBackStack()
                             else -> navController.navigate(route)
                         }
                     },

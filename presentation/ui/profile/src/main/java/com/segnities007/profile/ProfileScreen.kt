@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.common.Hub
+import com.segnities007.common.route.HubNavRoute
 
 /**
  * プロフィール画面
@@ -17,7 +17,7 @@ import com.segnities007.common.Hub
  */
 @Composable
 fun ProfileScreen(
-    onHubNavigate: (Hub) -> Unit = {},
+    onHubNavigate: (HubNavRoute) -> Unit = {},
 ) {
     ProfileContent(
         onHubNavigate = onHubNavigate
@@ -26,7 +26,7 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileContent(
-    onHubNavigate: (Hub) -> Unit,
+    onHubNavigate: (HubNavRoute) -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -37,7 +37,7 @@ private fun ProfileContent(
         // - プロフィール画像
         // - ユーザー名、バイオ、その他情報
         // - 編集ボタン
-        // - 設定ボタン: onHubNavigate(Hub.Settings)
-        // - 戻るボタン: onHubNavigate(Hub.Plaza)
+    // - 設定ボタン: onHubNavigate(HubNavRoute.Settings)
+    // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
     }
 }

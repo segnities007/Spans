@@ -28,8 +28,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
     buildFeatures {
         compose = true
@@ -53,6 +55,25 @@ dependencies {
     
     // Common - Navigation Routes
     implementation(project(":presentation:common"))
+    
+    // ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+    
+    // Koin
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    
+    // MVI
+    implementation(libs.mvi)
+    
+    // Domain Layer
+    implementation(project(":domain:model"))
+    implementation(project(":domain:usecase"))
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -10,8 +10,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.segnities007.common.Auth
-import com.segnities007.common.Hub
+import com.segnities007.common.route.AuthNavRoute
+import com.segnities007.common.route.HubNavRoute
 import com.segnities007.navigation.auth.AuthNavGraph
 import com.segnities007.navigation.hub.HubNavGraph
 
@@ -30,26 +30,26 @@ fun AppNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Auth.SignIn,
+        startDestination = AuthNavRoute.SignIn,
         modifier = modifier
     ) {
-        composable<Auth.SignIn> {
+        composable<AuthNavRoute.SignIn> {
             AuthNavGraph(
                 onAppNavigate = {
                     // 認証完了時はHubへ遷移
-                    navController.navigate(Hub.Plaza) {
-                        popUpTo<Auth.SignIn> { inclusive = true }
+                    navController.navigate(HubNavRoute.Plaza) {
+                        popUpTo<AuthNavRoute.SignIn> { inclusive = true }
                     }
                 }
             )
         }
         
-        composable<Hub.Plaza> {
+        composable<HubNavRoute.Plaza> {
             HubNavGraph(
                 onAppNavigate = {
                     // ログアウト時は認証画面へ
-                    navController.navigate(Auth.SignIn) {
-                        popUpTo<Hub.Plaza> { inclusive = true }
+                    navController.navigate(AuthNavRoute.SignIn) {
+                        popUpTo<HubNavRoute.Plaza> { inclusive = true }
                     }
                 }
             )

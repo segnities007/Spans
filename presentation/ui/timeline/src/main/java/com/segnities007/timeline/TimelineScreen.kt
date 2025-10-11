@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.segnities007.common.Hub
+import com.segnities007.common.route.HubNavRoute
 
 /**
  * タイムライン画面
@@ -17,7 +17,7 @@ import com.segnities007.common.Hub
  */
 @Composable
 fun TimelineScreen(
-    onHubNavigate: (Hub) -> Unit = {},
+    onHubNavigate: (HubNavRoute) -> Unit = {},
 ) {
     TimelineContent(
         onHubNavigate = onHubNavigate
@@ -26,7 +26,7 @@ fun TimelineScreen(
 
 @Composable
 private fun TimelineContent(
-    onHubNavigate: (Hub) -> Unit,
+    onHubNavigate: (HubNavRoute) -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -36,6 +36,6 @@ private fun TimelineContent(
         // TODO: 実装する
         // - 投稿一覧 (時系列順)
         // - 各投稿アイテム
-        // - 戻るボタン: onHubNavigate(Hub.Plaza)
+    // - 戻るボタン: onHubNavigate(HubNavRoute.Plaza)
     }
 }

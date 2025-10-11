@@ -6,12 +6,7 @@ import kotlinx.serialization.Serializable
  * アプリ全体のトップレベルルート
  */
 @Serializable
-sealed interface AppNavRoute {
-    @Serializable
-    data object Auth : AppNavRoute
-    @Serializable
-    data object Hub : AppNavRoute
-}
+sealed interface AppNavRoute
 
 /**
  * 認証フローのルート
