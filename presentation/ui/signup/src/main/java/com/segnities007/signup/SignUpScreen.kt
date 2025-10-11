@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -87,26 +88,35 @@ private fun SignUpContent(
     modifier: Modifier = Modifier
 ) {
     when (uiState) {
-        is SignUpUiState.Initial -> {
-            // 初期状態（通常は即座にEditingに移行）
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-
-        is SignUpUiState.Editing -> {
-            SignUpForm(
-                state = uiState,
+        is SignUpUiState.Wait -> {
+            SignUpFormContent(
+                nickname = uiState.nickname,
+                bio = uiState.bio,
+                nicknameError = uiState.nicknameError,
+                bioError = uiState.bioError,
+                isSubmitting = uiState.isSubmitting,
+                isValid = uiState.isValid,
                 onIntent = onIntent,
                 modifier = modifier
             )
         }
 
-        is SignUpUiState.Loading -> {
-            LoadingContent(modifier = modifier)
+        is SignUpUiState.Failed -> {
+            SignUpFormContent(
+                nickname = uiState.nickname,
+                bio = uiState.bio,
+                nicknameError = uiState.nicknameError,
+                bioError = uiState.bioError,
+                isSubmitting = false,
+                isValid = uiState.nicknameError == null && uiState.bioError == null,
+                onIntent = {
+                    if (it == SignUpIntent.SignUpClicked) {
+                        onIntent(SignUpIntent.RetryClicked)
+                    }
+                    onIntent(it)
+                },
+                modifier = modifier
+            )
         }
 
         is SignUpUiState.Success -> {
@@ -115,20 +125,17 @@ private fun SignUpContent(
                 modifier = modifier
             )
         }
-
-        is SignUpUiState.Error -> {
-            ErrorContent(
-                message = uiState.message,
-                onRetry = { onIntent(SignUpIntent.RetryClicked) },
-                modifier = modifier
-            )
-        }
     }
 }
 
 @Composable
-private fun SignUpForm(
-    state: SignUpUiState.Editing,
+private fun SignUpFormContent(
+    nickname: String,
+    bio: String,
+    nicknameError: String?,
+    bioError: String?,
+    isSubmitting: Boolean,
+    isValid: Boolean,
     onIntent: (SignUpIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -150,11 +157,11 @@ private fun SignUpForm(
 
         // ニックネーム入力
         OutlinedTextField(
-            value = state.nickname,
+            value = nickname,
             onValueChange = { onIntent(SignUpIntent.NicknameChanged(it)) },
             label = { Text("ニックネーム") },
-            isError = state.nicknameError != null,
-            supportingText = state.nicknameError?.let { { Text(it) } },
+            isError = nicknameError != null,
+            supportingText = nicknameError?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -163,11 +170,11 @@ private fun SignUpForm(
 
         // 自己紹介入力
         OutlinedTextField(
-            value = state.bio,
+            value = bio,
             onValueChange = { onIntent(SignUpIntent.BioChanged(it)) },
             label = { Text("自己紹介（任意）") },
-            isError = state.bioError != null,
-            supportingText = state.bioError?.let { { Text(it) } },
+            isError = bioError != null,
+            supportingText = bioError?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
             maxLines = 5
@@ -188,10 +195,17 @@ private fun SignUpForm(
         // サインアップボタン
         Button(
             onClick = { onIntent(SignUpIntent.SignUpClicked) },
-            enabled = state.isFormValid,
+            enabled = !isSubmitting && isValid && nickname.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("登録する")
+            if (isSubmitting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("登録する")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -201,22 +215,6 @@ private fun SignUpForm(
             onClick = { onIntent(SignUpIntent.NavigateToSignIn) }
         ) {
             Text("既にアカウントをお持ちの方はこちら")
-        }
-    }
-}
-
-@Composable
-private fun LoadingContent(
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("アカウントを作成中...")
         }
     }
 }
@@ -237,38 +235,6 @@ private fun SuccessContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text("アカウントが作成されました")
-        }
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    message: String,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(24.dp)
-        ) {
-            Text(
-                text = "エラーが発生しました",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.error
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = message,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onRetry) {
-                Text("再試行")
-            }
         }
     }
 }

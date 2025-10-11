@@ -38,9 +38,5 @@ private fun SignInContent(
     ) {
         Text("SignIn Screen")
         // TODO: 実装する
-        // - メールアドレス入力フィールド
-        // - パスワード入力フィールド
-        // - サインインボタン (成功時: onAuthSuccess())
-    // - サインアップリンク (クリック時: onAuthNavigate(AuthNavRoute.SignUp))
     }
 }

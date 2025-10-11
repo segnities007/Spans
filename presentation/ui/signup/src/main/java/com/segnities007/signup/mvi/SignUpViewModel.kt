@@ -1,35 +1,25 @@
 package com.segnities007.signup.mvi
 
 import androidx.lifecycle.viewModelScope
+import com.segnities007.model.exception.DomainException
 import com.segnities007.mvi.BaseViewModel
 import com.segnities007.usecase.auth.SignUpUseCase
 import kotlinx.coroutines.launch
 
 /**
  * サインアップ画面のViewModel
- * 
- * MVIライブラリ(com.segnities007:mvi)のBaseViewModelを継承
- * Reducerを使用して純粋な状態変換を実現
  */
 class SignUpViewModel(
     private val signUpUseCase: SignUpUseCase
 ) : BaseViewModel<SignUpUiState, SignUpIntent, SignUpEffect>(
-    initialState = SignUpUiState.Initial
+    initialState = SignUpUiState.Wait()
 ) {
-
-    private val reducer = SignUpReducer()
-
-    init {
-        // 初期状態を編集状態に設定
-        updateState(SignUpIntent.RetryClicked)
-    }
 
     /**
      * MVIライブラリが要求するIntent処理メソッド
      */
     override fun onIntent(intent: SignUpIntent) {
         when (intent) {
-            // Reducerで処理できるIntentは直接reduce
             is SignUpIntent.NicknameChanged,
             is SignUpIntent.BioChanged,
             is SignUpIntent.AvatarSelected,
@@ -37,8 +27,7 @@ class SignUpViewModel(
             SignUpIntent.RetryClicked -> {
                 updateState(intent)
             }
-            
-            // 副作用を伴うIntent
+
             SignUpIntent.SignUpClicked -> handleSignUpClicked()
             SignUpIntent.NavigateToSignIn -> handleNavigateToSignIn()
         }
@@ -46,20 +35,27 @@ class SignUpViewModel(
 
     private fun handleSignUpClicked() {
         viewModelScope.launch {
-            val state = uiState.value
-            
-            if (state !is SignUpUiState.Editing) return@launch
-            if (!state.isFormValid) return@launch
+            val originalState = uiState.value
 
-            // Reducerで状態をLoadingに更新
+            if (originalState !is SignUpUiState.Wait && originalState !is SignUpUiState.Failed) {
+                return@launch
+            }
+
+            // Reducerを経由して送信状態に遷移
             updateState(SignUpIntent.SignUpClicked)
+
+            val submittingState = uiState.value as? SignUpUiState.Wait ?: return@launch
+
+            if (!submittingState.isSubmitting) {
+                return@launch
+            }
 
             // TODO: avatarUriをByteArrayに変換する処理を実装
             val avatarData: ByteArray? = null
 
             val result = signUpUseCase(
-                nickname = state.nickname,
-                bio = state.bio,
+                nickname = submittingState.nickname,
+                bio = submittingState.bio,
                 avatarData = avatarData
             )
 
@@ -71,13 +67,22 @@ class SignUpViewModel(
                 sendEffect(SignUpEffect.NavigateToPlaza)
                 sendEffect(SignUpEffect.ShowSuccess("サインアップに成功しました"))
             } else {
-                val errorMessage = result.exceptionOrNull()?.message ?: "不明なエラーが発生しました"
-                setState(SignUpUiState.Error(
-                    message = errorMessage,
-                    nickname = state.nickname,
-                    bio = state.bio,
-                    avatarUri = state.avatarUri
-                ))
+                // Result型からエラー情報を取得
+                val throwable = result.exceptionOrNull()
+                
+                // エラーメッセージとフィールドエラーを抽出
+                val errorMessage = throwable?.message ?: "不明なエラーが発生しました"
+                val (nicknameError, bioError) = extractFieldErrors(throwable)
+
+                setState(
+                    SignUpUiState.Failed(
+                        nickname = submittingState.nickname,
+                        bio = submittingState.bio,
+                        avatarUri = submittingState.avatarUri,
+                        nicknameError = nicknameError,
+                        bioError = bioError
+                    )
+                )
                 sendEffect(SignUpEffect.ShowError(errorMessage))
             }
         }
@@ -87,11 +92,32 @@ class SignUpViewModel(
         sendEffect(SignUpEffect.NavigateToSignIn)
     }
 
+    private fun extractFieldErrors(throwable: Throwable?): Pair<String?, String?> {
+        return when (throwable) {
+            is DomainException.ValidationError -> {
+                when (throwable.field) {
+                    "nickname" -> throwable.message to null
+                    "bio" -> null to throwable.message
+                    else -> null to null
+                }
+            }
+            is IllegalArgumentException -> {
+                val message = throwable.message ?: return null to null
+                when {
+                    message.contains("ニックネーム") -> message to null
+                    message.contains("自己紹介") -> null to message
+                    else -> null to null
+                }
+            }
+            else -> null to null
+        }
+    }
+
     /**
      * Reducerを使用して状態を更新
      */
     private fun updateState(intent: SignUpIntent) {
-        setState(reducer.reduce(uiState.value, intent))
+        setState(SignUpReducer.reduce(uiState.value, intent))
     }
 
     /**

@@ -1,11 +1,13 @@
 # SignUpViewModel - 実装ガイド
 
 ## 概要
-SignUpViewModelは、**MVIライブラリ（com.github.segnities007:mvi）を継承**してサインアップ画面の状態管理を行います。
 
-## MVIライブラリの使用
+SignUpViewModel は、**MVI ライブラリ（com.github.segnities007:mvi）を継承**してサインアップ画面の状態管理を行います。
+
+## MVI ライブラリの使用
 
 ### 基底クラスの継承構造
+
 ```kotlin
 // 1. UiState - MVIライブラリの基底インターフェース
 sealed interface SignUpUiState : UiState {
@@ -37,7 +39,7 @@ class SignUpReducer : Reducer<SignUpUiState, SignUpIntent> {
             // ... 他のIntent処理
         }
     }
-    
+
     private fun reduceNicknameChanged(state: SignUpUiState, nickname: String): SignUpUiState {
         // 純粋関数として状態を変換
     }
@@ -50,7 +52,7 @@ class SignUpViewModel(
     initialState = SignUpUiState.Initial
 ) {
     private val reducer = SignUpReducer()
-    
+
     // onIntent()をオーバーライドしてIntent処理を実装
     override fun onIntent(intent: SignUpIntent) {
         // Reducerで処理
@@ -59,25 +61,29 @@ class SignUpViewModel(
 }
 ```
 
-### MVIライブラリの提供機能
+### MVI ライブラリの提供機能
 
-**BaseViewModel基底クラスが提供するもの：**
-- `uiState: StateFlow<STATE>` - UI状態の監視用StateFlow（public readonly）
-- `effect: Flow<EFFECT>` - 副作用イベントのFlow（public readonly）
+**BaseViewModel 基底クラスが提供するもの：**
+
+- `uiState: StateFlow<STATE>` - UI 状態の監視用 StateFlow（public readonly）
+- `effect: Flow<EFFECT>` - 副作用イベントの Flow（public readonly）
 - `sendEffect(effect: EFFECT)` - 副作用送信メソッド（protected）
 
 **実装すべき抽象メソッド：**
-- `abstract fun onIntent(intent: INTENT)` - Intent処理ロジック
+
+- `abstract fun onIntent(intent: INTENT)` - Intent 処理ロジック
 
 **⚠️ 現在の制限事項：**
-- BaseViewModelの `_uiState` は private のため、状態更新には Reflection が必要
-- **推奨対応**: BaseViewModelに `protected fun setState(newState: STATE)` メソッドを追加
-- または、BaseViewModelを使わず独自にViewModel実装を行う
+
+- BaseViewModel の `_uiState` は private のため、状態更新には Reflection が必要
+- **推奨対応**: BaseViewModel に `protected fun setState(newState: STATE)` メソッドを追加
+- または、BaseViewModel を使わず独自に ViewModel 実装を行う
 
 ## 作成されたファイル
 
-### 1. MVI構造
-```
+### 1. MVI 構造
+
+````
 presentation/ui/signup/src/main/java/com/segnities007/signup/mvi/
 ├── SignUpUiState.kt      # UI状態（UiState継承）
 ├── SignUpIntent.kt       # ユーザーIntent（UiIntent継承）
@@ -92,58 +98,66 @@ SignUpViewModelは、MVIパターンを使用してサインアップ画面の�
 ## 作成されたファイル
 
 ### 1. MVI構造
-```
+````
+
 presentation/ui/signup/src/main/java/com/segnities007/signup/mvi/
-├── SignUpUiState.kt      # UI状態の定義
-├── SignUpIntent.kt       # ユーザーインテントの定義
-├── SignUpEffect.kt       # 副作用（一度きりのイベント）の定義
-├── SignUpReducer.kt      # 状態変更ロジック（純粋関数）
-└── SignUpViewModel.kt    # ViewModelの実装
+├── SignUpUiState.kt # UI 状態の定義
+├── SignUpIntent.kt # ユーザーインテントの定義
+├── SignUpEffect.kt # 副作用（一度きりのイベント）の定義
+├── SignUpReducer.kt # 状態変更ロジック（純粋関数）
+└── SignUpViewModel.kt # ViewModel の実装
+
 ```
 
 ### 2. DI設定
 ```
+
 di/src/main/java/com/segnities007/di/
-├── UseCaseModule.kt      # UseCaseの依存性注入
-├── ViewModelModule.kt    # ViewModelの依存性注入
-└── AppModules.kt         # 更新済み
+├── UseCaseModule.kt # UseCase の依存性注入
+├── ViewModelModule.kt # ViewModel の依存性注入
+└── AppModules.kt # 更新済み
+
 ```
 
 ### 3. 画面実装
 ```
+
 presentation/ui/signup/src/main/java/com/segnities007/signup/
-└── SignUpScreen.kt       # 更新済み（ViewModelを使用）
+└── SignUpScreen.kt # 更新済み（ViewModel を使用）
+
 ```
 
 ## MVIデータフロー（MVIライブラリ使用）
 
 ```
+
 User Action (Intent)
-    ↓
-ViewModel.onIntent() ← MVIライブラリが提供
-    ↓
+↓
+ViewModel.onIntent() ← MVI ライブラリが提供
+↓
 handleIntent() ← アプリが実装
-    ↓
+↓
 Reducer.reduce() ← 純粋関数
-    ↓
-updateState() ← MVIライブラリが提供
-    ↓
-StateFlow更新
-    ↓
+↓
+updateState() ← MVI ライブラリが提供
+↓
+StateFlow 更新
+↓
 Compose Recomposition
-    ↓
-UI更新
+↓
+UI 更新
 
 副作用（Effect）
-    ↓
-sendEffect() ← MVIライブラリが提供
-    ↓
+↓
+sendEffect() ← MVI ライブラリが提供
+↓
 Effect Flow
-    ↓
+↓
 Screen (LaunchedEffect)
-    ↓
-ナビゲーション/Snackbar等
-```
+↓
+ナビゲーション/Snackbar 等
+
+````
 
 ### MVIライブラリによる利点
 
@@ -162,7 +176,7 @@ fun SignUpScreen(
     viewModel: SignUpViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    
+
     // Effect処理
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -172,7 +186,7 @@ fun SignUpScreen(
             }
         }
     }
-    
+
     // UI状態に応じた表示
     when (uiState) {
         is SignUpUiState.Editing -> SignUpForm(...)
@@ -181,9 +195,10 @@ fun SignUpScreen(
         is SignUpUiState.Error -> ErrorView()
     }
 }
-```
+````
 
-### ユーザーアクション処理（MVIライブラリのonIntent使用）
+### ユーザーアクション処理（MVI ライブラリの onIntent 使用）
+
 ```kotlin
 // onIntent()はMviViewModelが提供 → handleIntent()が呼ばれる
 viewModel.onIntent(SignUpIntent.NicknameChanged("新しいニックネーム"))
@@ -213,12 +228,14 @@ override fun handleIntent(intent: SignUpIntent) {
 }
 ```
 
-## UiState一覧
+## UiState 一覧
 
 ### 1. Initial
-初期状態（通常は即座にEditingに移行）
+
+初期状態（通常は即座に Editing に移行）
 
 ### 2. Editing
+
 ```kotlin
 data class Editing(
     val nickname: String = "",
@@ -231,6 +248,7 @@ data class Editing(
 ```
 
 ### 3. Loading
+
 ```kotlin
 data class Loading(
     val nickname: String,
@@ -240,11 +258,13 @@ data class Loading(
 ```
 
 ### 4. Success
+
 ```kotlin
 data class Success(val user: User)
 ```
 
 ### 5. Error
+
 ```kotlin
 data class Error(
     val message: String,
@@ -254,31 +274,31 @@ data class Error(
 )
 ```
 
-## Intent一覧
+## Intent 一覧
 
-| Intent | 説明 | パラメータ |
-|--------|------|-----------|
-| NicknameChanged | ニックネーム変更 | nickname: String |
-| BioChanged | 自己紹介変更 | bio: String |
-| AvatarSelected | アバター選択 | uri: String? |
-| AvatarRemoved | アバター削除 | なし |
-| SignUpClicked | サインアップ実行 | なし |
-| NavigateToSignIn | サインイン画面へ | なし |
-| RetryClicked | エラー後のリトライ | なし |
+| Intent           | 説明               | パラメータ       |
+| ---------------- | ------------------ | ---------------- |
+| NicknameChanged  | ニックネーム変更   | nickname: String |
+| BioChanged       | 自己紹介変更       | bio: String      |
+| AvatarSelected   | アバター選択       | uri: String?     |
+| AvatarRemoved    | アバター削除       | なし             |
+| SignUpClicked    | サインアップ実行   | なし             |
+| NavigateToSignIn | サインイン画面へ   | なし             |
+| RetryClicked     | エラー後のリトライ | なし             |
 
-## Effect一覧
+## Effect 一覧
 
-| Effect | 説明 | パラメータ |
-|--------|------|-----------|
-| NavigateToPlaza | Plaza画面へ遷移 | なし |
-| NavigateToSignIn | サインイン画面へ遷移 | なし |
-| ShowError | エラーメッセージ表示 | message: String |
-| ShowSuccess | 成功メッセージ表示 | message: String |
-| ShowAvatarPicker | アバター選択ダイアログ | なし |
+| Effect           | 説明                   | パラメータ      |
+| ---------------- | ---------------------- | --------------- |
+| NavigateToPlaza  | Plaza 画面へ遷移       | なし            |
+| NavigateToSignIn | サインイン画面へ遷移   | なし            |
+| ShowError        | エラーメッセージ表示   | message: String |
+| ShowSuccess      | 成功メッセージ表示     | message: String |
+| ShowAvatarPicker | アバター選択ダイアログ | なし            |
 
-## Reducerの役割
+## Reducer の役割
 
-Reducerは純粋関数として状態変更ロジックを集約します：
+Reducer は純粋関数として状態変更ロジックを集約します：
 
 ```kotlin
 object SignUpReducer {
@@ -294,6 +314,7 @@ object SignUpReducer {
 ```
 
 ### 主な特徴
+
 - 純粋関数（副作用なし）
 - テストが容易
 - 状態変更ロジックが一箇所に集約
@@ -302,13 +323,15 @@ object SignUpReducer {
 ## バリデーション
 
 ### ニックネーム
+
 - 必須
-- 2文字以上20文字以内
+- 2 文字以上 20 文字以内
 - リアルタイムバリデーション
 
 ### 自己紹介
+
 - 任意
-- 500文字以内
+- 500 文字以内
 - リアルタイムバリデーション
 
 ## エラーハンドリング
@@ -316,7 +339,7 @@ object SignUpReducer {
 ```kotlin
 private suspend fun executeSignUp(...) {
     val result = signUpUseCase(...)
-    
+
     // 早期リターン: 失敗時
     if (result.isFailure) {
         val error = result.exceptionOrNull()
@@ -324,7 +347,7 @@ private suspend fun executeSignUp(...) {
         sendEffect(SignUpEffect.ShowError(error.message))
         return
     }
-    
+
     // 成功時
     val user = result.getOrNull()
     _uiState.value = SignUpReducer.reduceSignUpSuccess(_uiState.value, user)
@@ -335,12 +358,15 @@ private suspend fun executeSignUp(...) {
 ## 次のステップ
 
 ### 今後の実装が必要な機能
+
 1. アバター画像選択機能
+
    - 画像ピッカーの実装
    - 画像圧縮処理
-   - ByteArray変換
+   - ByteArray 変換
 
-2. 他の画面のViewModel実装
+2. 他の画面の ViewModel 実装
+
    - SignInViewModel
    - TimelineViewModel
    - PostViewModel
@@ -349,13 +375,14 @@ private suspend fun executeSignUp(...) {
    - SettingsViewModel
 
 3. テストの実装
-   - SignUpViewModelのUnitテスト
-   - SignUpReducerのUnitテスト
-   - SignUpScreenのUIテスト
+   - SignUpViewModel の Unit テスト
+   - SignUpReducer の Unit テスト
+   - SignUpScreen の UI テスト
 
 ## トラブルシューティング
 
-### Koinの依存性注入エラー
+### Koin の依存性注入エラー
+
 ```kotlin
 // MainApplication.ktでKoinを初期化
 startKoin {
@@ -364,14 +391,16 @@ startKoin {
 }
 ```
 
-### ViewModelが取得できない
+### ViewModel が取得できない
+
 ```kotlin
 // build.gradle.ktsに依存関係を追加
 implementation(libs.koin.androidx.compose)
 ```
 
 ## 参考資料
+
 - `overview/AGENTS.md` - アーキテクチャ設計原則
 - `overview/PROJECT.md` - プロジェクト仕様書
-- Android公式ドキュメント - ViewModel
-- Koin公式ドキュメント
+- Android 公式ドキュメント - ViewModel
+- Koin 公式ドキュメント
